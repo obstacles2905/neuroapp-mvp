@@ -99,8 +99,7 @@ export class LessonStepService {
     dto: ReorderLessonStepsDto,
   ): Promise<void> {
     await this.ensureBlockInLesson(lessonId, blockId);
-    const steps =
-      await this.lessonStepRepository.findByBlockIdOrdered(blockId);
+    const steps = await this.lessonStepRepository.findByBlockIdOrdered(blockId);
     this.assertReorderMatchesSteps(steps, dto.items);
     await this.lessonStepRepository.updateOrders(blockId, dto.items);
   }
@@ -123,8 +122,7 @@ export class LessonStepService {
   }
 
   private async nextSlideOrder(blockId: string): Promise<number> {
-    const steps =
-      await this.lessonStepRepository.findByBlockIdOrdered(blockId);
+    const steps = await this.lessonStepRepository.findByBlockIdOrdered(blockId);
     if (steps.length === 0) {
       return 0;
     }

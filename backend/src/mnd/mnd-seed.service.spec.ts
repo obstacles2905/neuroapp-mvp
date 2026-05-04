@@ -103,9 +103,9 @@ describe('MndSeedService', () => {
 
   it('creates missing seed rows', async () => {
     expect.assertions(6);
-    const firstStack = MND_MASTER_STACK_SEED_ROWS[0]!;
-    const firstSymptom = MND_SYMPTOM_SEED_ROWS[0]!;
-    const firstRule = MND_MATRIX_RULE_SEED_ROWS[0]!;
+    const firstStack = MND_MASTER_STACK_SEED_ROWS[0];
+    const firstSymptom = MND_SYMPTOM_SEED_ROWS[0];
+    const firstRule = MND_MATRIX_RULE_SEED_ROWS[0];
     const stackEntity = { id: firstStack.id, code: firstStack.code };
     const ruleEntity = { id: firstRule.id } as MndMatrixRule;
     const ruleStackEntity = { masterStackId: firstStack.id };
@@ -123,7 +123,9 @@ describe('MndSeedService', () => {
     ruleSaveWithStacksMock.mockResolvedValue(ruleEntity);
     exerciseFindByIdMock.mockResolvedValue(null);
     exerciseCreateMock.mockImplementation((data: object) => data);
-    exerciseSaveMock.mockImplementation((data: object) => Promise.resolve(data));
+    exerciseSaveMock.mockImplementation((data: object) =>
+      Promise.resolve(data),
+    );
 
     await service.seedIfNeeded();
 

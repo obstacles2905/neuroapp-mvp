@@ -29,7 +29,7 @@ export function MatchProperty(
   return (object: object, propertyName: string | symbol) => {
     registerDecorator({
       name: 'matchProperty',
-      target: object.constructor as new (...args: unknown[]) => unknown,
+      target: object.constructor,
       propertyName: propertyName as string,
       options: validationOptions,
       constraints: [property],

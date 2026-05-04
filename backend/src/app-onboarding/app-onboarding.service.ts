@@ -16,7 +16,9 @@ export class AppOnboardingService {
     private readonly mndSymptomService: MndSymptomService,
   ) {}
 
-  async listPublishedSymptoms(): Promise<AppOnboardingSymptomListItemResponseDto[]> {
+  async listPublishedSymptoms(): Promise<
+    AppOnboardingSymptomListItemResponseDto[]
+  > {
     const rows = await this.mndSymptomService.findPublishedForOnboarding();
     return rows.map((s) => ({
       id: s.id,

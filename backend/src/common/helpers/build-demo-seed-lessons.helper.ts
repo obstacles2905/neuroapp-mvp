@@ -94,5 +94,5 @@ export function buildDemoSeedLessons(): DemoLessonSeed[] {
 }
 
 export function getDemoCategoryIdForIndex(categoryIndex: number): string {
-  return ONBOARDING_CATEGORY_SEED_IDS[categoryIndex]!;
+  return ONBOARDING_CATEGORY_SEED_IDS[categoryIndex];
 }

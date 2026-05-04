@@ -40,7 +40,8 @@ export const MND_MASTER_STACK_SEED_ROWS: readonly MndMasterStackSeedRow[] = [
     id: '10000000-0000-4000-8000-000000000005',
     code: MndMasterStackCode.ST_5,
     titleRu: 'Breath Control',
-    descriptionRu: 'Управление дыханием, газовым составом крови и ритмом сердца.',
+    descriptionRu:
+      'Управление дыханием, газовым составом крови и ритмом сердца.',
     order: 4,
   },
   {
@@ -68,7 +69,8 @@ export const MND_SYMPTOM_SEED_ROWS: readonly MndSymptomSeedRow[] = [
     titleRu: 'Сжатая пружина',
     descriptionRu:
       'Физическое ощущение угрозы: челюсти, плечи и невозможность выдохнуть.',
-    neurophysiologicalRootRu: 'Симпатический овердрайв и спазм жевательных мышц.',
+    neurophysiologicalRootRu:
+      'Симпатический овердрайв и спазм жевательных мышц.',
     order: 1,
   },
   {
@@ -76,7 +78,8 @@ export const MND_SYMPTOM_SEED_ROWS: readonly MndSymptomSeedRow[] = [
     code: 'MND-03',
     titleRu: 'Стеклянная стена',
     descriptionRu: 'Мир кажется декорацией, чувства притуплены и отдалены.',
-    neurophysiologicalRootRu: 'Дорсальный вагус и снижение зеркальной чувствительности.',
+    neurophysiologicalRootRu:
+      'Дорсальный вагус и снижение зеркальной чувствительности.',
     order: 2,
   },
   {
@@ -92,16 +95,20 @@ export const MND_SYMPTOM_SEED_ROWS: readonly MndSymptomSeedRow[] = [
     id: '20000000-0000-4000-8000-000000000005',
     code: 'MND-05',
     titleRu: 'Яд старых обид',
-    descriptionRu: 'Прошлые конфликты продолжают жить внутри и отравляют момент.',
-    neurophysiologicalRootRu: 'Зацикленность гиппокампа на негативных паттернах.',
+    descriptionRu:
+      'Прошлые конфликты продолжают жить внутри и отравляют момент.',
+    neurophysiologicalRootRu:
+      'Зацикленность гиппокампа на негативных паттернах.',
     order: 4,
   },
   {
     id: '20000000-0000-4000-8000-000000000006',
     code: 'MND-06',
     titleRu: 'Процессор перегрет',
-    descriptionRu: 'Внимание рассыпается, мозг требует новой дозы цифрового шума.',
-    neurophysiologicalRootRu: 'Истощение внимания и фрагментация префронтальной коры.',
+    descriptionRu:
+      'Внимание рассыпается, мозг требует новой дозы цифрового шума.',
+    neurophysiologicalRootRu:
+      'Истощение внимания и фрагментация префронтальной коры.',
     order: 5,
   },
   {
@@ -109,7 +116,8 @@ export const MND_SYMPTOM_SEED_ROWS: readonly MndSymptomSeedRow[] = [
     code: 'MND-07',
     titleRu: 'Режим обороны',
     descriptionRu: 'Любой человек ощущается потенциальным источником проблем.',
-    neurophysiologicalRootRu: 'Гиперсенситивность амигдалы и блок социального вовлечения.',
+    neurophysiologicalRootRu:
+      'Гиперсенситивность амигдалы и блок социального вовлечения.',
     order: 6,
   },
   {
@@ -117,7 +125,8 @@ export const MND_SYMPTOM_SEED_ROWS: readonly MndSymptomSeedRow[] = [
     code: 'MND-08',
     titleRu: 'Эрозия будущего',
     descriptionRu: 'Кажется, что впереди только повторение вчерашнего дня.',
-    neurophysiologicalRootRu: 'Сбой фронтального моделирования и нейропластичности.',
+    neurophysiologicalRootRu:
+      'Сбой фронтального моделирования и нейропластичности.',
     order: 7,
   },
   {
@@ -125,15 +134,18 @@ export const MND_SYMPTOM_SEED_ROWS: readonly MndSymptomSeedRow[] = [
     code: 'MND-09',
     titleRu: 'Призраки в шкафу',
     descriptionRu: 'Воспоминания стыда всплывают внезапно и бьют под дых.',
-    neurophysiologicalRootRu: 'Аверсивная память без устойчивой телесной опоры.',
+    neurophysiologicalRootRu:
+      'Аверсивная память без устойчивой телесной опоры.',
     order: 8,
   },
   {
     id: '20000000-0000-4000-8000-000000000010',
     code: 'MND-10',
     titleRu: 'Батарейка на нуле',
-    descriptionRu: 'Усталость уже после пробуждения, любые задачи кажутся тяжелыми.',
-    neurophysiologicalRootRu: 'Метаболический стресс и истощение ресурса выживания.',
+    descriptionRu:
+      'Усталость уже после пробуждения, любые задачи кажутся тяжелыми.',
+    neurophysiologicalRootRu:
+      'Метаболический стресс и истощение ресурса выживания.',
     order: 9,
   },
   {
@@ -148,16 +160,20 @@ export const MND_SYMPTOM_SEED_ROWS: readonly MndSymptomSeedRow[] = [
     id: '20000000-0000-4000-8000-000000000012',
     code: 'MND-12',
     titleRu: 'Социальный камуфляж',
-    descriptionRu: 'Вежливая маска снаружи и пустота с потерей своего Я внутри.',
-    neurophysiologicalRootRu: 'Блокировка лицевого нерва и зажим мимических мышц.',
+    descriptionRu:
+      'Вежливая маска снаружи и пустота с потерей своего Я внутри.',
+    neurophysiologicalRootRu:
+      'Блокировка лицевого нерва и зажим мимических мышц.',
     order: 11,
   },
   {
     id: '20000000-0000-4000-8000-000000000013',
     code: 'MND-13',
     titleRu: 'Синдром самозванца',
-    descriptionRu: 'Достижения кажутся случайностью, а разоблачение неизбежным.',
-    neurophysiologicalRootRu: 'Гиперкритика DMN при дефиците базального дофамина.',
+    descriptionRu:
+      'Достижения кажутся случайностью, а разоблачение неизбежным.',
+    neurophysiologicalRootRu:
+      'Гиперкритика DMN при дефиците базального дофамина.',
     order: 12,
   },
   {
@@ -188,7 +204,8 @@ export const MND_SYMPTOM_SEED_ROWS: readonly MndSymptomSeedRow[] = [
     id: '20000000-0000-4000-8000-000000000017',
     code: 'MND-17',
     titleRu: 'Синдром дефицита тишины',
-    descriptionRu: 'Трудно выдержать даже несколько минут без телефона или шума.',
+    descriptionRu:
+      'Трудно выдержать даже несколько минут без телефона или шума.',
     neurophysiologicalRootRu: 'Поломка внутренней системы саморегуляции.',
     order: 16,
   },
@@ -197,7 +214,8 @@ export const MND_SYMPTOM_SEED_ROWS: readonly MndSymptomSeedRow[] = [
     code: 'MND-18',
     titleRu: 'Телесный невозврат',
     descriptionRu: 'Сигналы тела замечаются только когда становятся болью.',
-    neurophysiologicalRootRu: 'Дисфункция островковой доли, отвечающей за интероцепцию.',
+    neurophysiologicalRootRu:
+      'Дисфункция островковой доли, отвечающей за интероцепцию.',
     order: 17,
   },
   {
@@ -213,7 +231,8 @@ export const MND_SYMPTOM_SEED_ROWS: readonly MndSymptomSeedRow[] = [
     code: 'MND-20',
     titleRu: 'Взрыв на ровном месте',
     descriptionRu: 'Реакция ярости или слез наступает раньше осознания.',
-    neurophysiologicalRootRu: 'Низкий порог амигдалы при слабом префронтальном торможении.',
+    neurophysiologicalRootRu:
+      'Низкий порог амигдалы при слабом префронтальном торможении.',
     order: 19,
   },
 ];
@@ -230,7 +249,8 @@ export const MND_MATRIX_RULE_SEED_ROWS: readonly MndMatrixRuleSeedRow[] = [
   {
     id: '30000000-0000-4000-8000-000000000002',
     symptomId: '20000000-0000-4000-8000-000000000002',
-    targetActionRu: 'Сброс боевой готовности через расслабление триггерных зон.',
+    targetActionRu:
+      'Сброс боевой готовности через расслабление триггерных зон.',
     bottomUpPercent: 80,
     topDownPercent: 20,
     stackCodes: [MndMasterStackCode.ST_2, MndMasterStackCode.ST_1],
@@ -238,7 +258,8 @@ export const MND_MATRIX_RULE_SEED_ROWS: readonly MndMatrixRuleSeedRow[] = [
   {
     id: '30000000-0000-4000-8000-000000000003',
     symptomId: '20000000-0000-4000-8000-000000000003',
-    targetActionRu: 'Оживление рецепторов и восстановление плотности границ тела.',
+    targetActionRu:
+      'Оживление рецепторов и восстановление плотности границ тела.',
     bottomUpPercent: 70,
     topDownPercent: 30,
     stackCodes: [MndMasterStackCode.ST_3, MndMasterStackCode.ST_6],
@@ -278,7 +299,8 @@ export const MND_MATRIX_RULE_SEED_ROWS: readonly MndMatrixRuleSeedRow[] = [
   {
     id: '30000000-0000-4000-8000-000000000008',
     symptomId: '20000000-0000-4000-8000-000000000008',
-    targetActionRu: 'Стимуляция зон мозга, отвечающих за прогноз и воображение.',
+    targetActionRu:
+      'Стимуляция зон мозга, отвечающих за прогноз и воображение.',
     bottomUpPercent: 20,
     topDownPercent: 80,
     stackCodes: [MndMasterStackCode.ST_4, MndMasterStackCode.ST_5],
@@ -428,8 +450,8 @@ function buildMndExerciseSeedRows(): MndExerciseSeedRow[] {
   const rows: MndExerciseSeedRow[] = [];
   let seq = 101;
   for (let i = 0; i < MND_MASTER_STACK_SEED_ROWS.length; i++) {
-    const stack = MND_MASTER_STACK_SEED_ROWS[i]!;
-    const copy = MND_EXERCISE_DEMO_COPY[i]!;
+    const stack = MND_MASTER_STACK_SEED_ROWS[i];
+    const copy = MND_EXERCISE_DEMO_COPY[i];
     const idBu = `40000000-0000-4000-8000-000000000${String(seq++).padStart(3, '0')}`;
     const idTd = `40000000-0000-4000-8000-000000000${String(seq++).padStart(3, '0')}`;
     rows.push({

@@ -76,7 +76,10 @@ describe('MndExerciseService', () => {
     exerciseCreateMock.mockReturnValue(created);
     exerciseSaveMock.mockResolvedValue(created);
     createDefaultBlocksForExerciseMock.mockResolvedValue(undefined);
-    exerciseFindByIdWithRelationsMock.mockResolvedValue({ ...created, blocks: [] });
+    exerciseFindByIdWithRelationsMock.mockResolvedValue({
+      ...created,
+      blocks: [],
+    });
 
     const result = await service.create(dto);
 
@@ -96,11 +99,11 @@ describe('MndExerciseService', () => {
       id: exerciseId,
       isPublished: false,
       blocks: [{ slides: [] }],
-    } as MndExercise);
+    });
 
-    await expect(service.findOnePublishedForApp(exerciseId)).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(
+      service.findOnePublishedForApp(exerciseId),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 
   function buildExerciseDto(masterStackId: string): CreateMndExerciseDto {

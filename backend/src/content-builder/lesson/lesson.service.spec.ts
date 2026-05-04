@@ -124,8 +124,10 @@ describe('LessonService', () => {
     findByIdMock.mockResolvedValue({
       id: lessonId,
       status: LessonStatus.PUBLISHED,
-    } as Lesson);
-    await expect(service.remove(lessonId)).rejects.toBeInstanceOf(BadRequestException);
+    });
+    await expect(service.remove(lessonId)).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
     expect(removeMock).not.toHaveBeenCalled();
   });
 
@@ -152,22 +154,24 @@ describe('LessonService', () => {
         sentences: { ru: ['x'], uk: ['x'], en: ['x'] },
       },
     };
-    const blocks = LESSON_CONTENT_BLOCK_TYPES_IN_ORDER.map((blockType, order) => ({
-      order,
-      blockType,
-      slides:
-        order === 0
-          ? [step]
-          : [
-              {
-                type: LessonStepType.THEORY,
-                content: {
-                  display_mode: 'all',
-                  sentences: { ru: ['x'], uk: ['x'], en: ['x'] },
+    const blocks = LESSON_CONTENT_BLOCK_TYPES_IN_ORDER.map(
+      (blockType, order) => ({
+        order,
+        blockType,
+        slides:
+          order === 0
+            ? [step]
+            : [
+                {
+                  type: LessonStepType.THEORY,
+                  content: {
+                    display_mode: 'all',
+                    sentences: { ru: ['x'], uk: ['x'], en: ['x'] },
+                  },
                 },
-              },
-            ],
-    }));
+              ],
+      }),
+    );
     const draftLesson = {
       id: lessonId,
       blocks,

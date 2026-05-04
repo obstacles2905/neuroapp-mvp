@@ -11,11 +11,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '../auth/decorators/public.decorator';
 import { AppJwtAuthGuard } from '../app-auth/guards/app-jwt-auth.guard';
 import { CurrentAppUser } from '../app-auth/decorators/current-app-user.decorator';
@@ -32,7 +28,9 @@ export class AppMndExerciseController {
   @Get(':exerciseId')
   @UseGuards(AppJwtAuthGuard)
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Контент опубликованного MND-упражнения (блоки и шаги)' })
+  @ApiOperation({
+    summary: 'Контент опубликованного MND-упражнения (блоки и шаги)',
+  })
   getOne(
     @Param('exerciseId', ParseUUIDPipe) exerciseId: string,
   ): Promise<AppMndExerciseDetailResponseDto> {

@@ -14,8 +14,7 @@ const DEFAULT_CORS_ORIGINS: readonly string[] = [
   'http://127.0.0.1:19006',
 ];
 
-const LOCALHOST_ORIGIN_RE =
-  /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
+const LOCALHOST_ORIGIN_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
 
 function parseEnvCorsOrigins(): string[] {
   const raw = process.env.CORS_ORIGINS;

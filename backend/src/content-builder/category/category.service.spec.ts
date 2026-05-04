@@ -114,7 +114,7 @@ describe('CategoryService', () => {
     findByIdMock.mockResolvedValue({
       id: categoryId,
       catalogAudience: CategoryCatalogAudience.PRODUCTION,
-    } as Category);
+    });
     await expect(service.remove(categoryId)).rejects.toBeInstanceOf(
       BadRequestException,
     );

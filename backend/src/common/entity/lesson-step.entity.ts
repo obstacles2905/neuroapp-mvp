@@ -19,7 +19,9 @@ export class LessonStep {
   @Column({ name: 'lesson_block_id', type: 'uuid' })
   lessonBlockId: string;
 
-  @ManyToOne(() => LessonBlock, (block) => block.slides, { onDelete: 'CASCADE' })
+  @ManyToOne(() => LessonBlock, (block) => block.slides, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'lesson_block_id' })
   block: LessonBlock;
 

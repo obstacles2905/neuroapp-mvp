@@ -75,9 +75,7 @@ describe('MndSymptomService', () => {
     const published = [{ id: symptomRowId } as MndSymptom];
     findPublishedOrderedMock.mockResolvedValue(published);
     const result = await service.findPublishedForOnboarding();
-    expect(result).toEqual([
-      expect.objectContaining({ id: symptomRowId }),
-    ]);
+    expect(result).toEqual([expect.objectContaining({ id: symptomRowId })]);
   });
 
   it('findOne throws when symptom is missing', async () => {

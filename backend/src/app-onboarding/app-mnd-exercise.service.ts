@@ -26,8 +26,11 @@ export class AppMndExerciseService {
     private readonly jamDayCompletionRepository: AppUserMndJamExerciseDayCompletionRepository,
   ) {}
 
-  async getPublishedDetail(exerciseId: string): Promise<AppMndExerciseDetailResponseDto> {
-    const exercise = await this.mndExerciseService.findOnePublishedForApp(exerciseId);
+  async getPublishedDetail(
+    exerciseId: string,
+  ): Promise<AppMndExerciseDetailResponseDto> {
+    const exercise =
+      await this.mndExerciseService.findOnePublishedForApp(exerciseId);
     return this.toDetailDto(exercise);
   }
 

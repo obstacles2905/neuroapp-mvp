@@ -7,7 +7,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AppUserRepository } from '../analytics/app-user.repository';
 import { UserLessonProgress } from '../common/entity/user-lesson-progress.entity';
-import { toUtcYyyyMmDd, utcYyyyMmDdYesterday } from '../common/helpers/utc-yyyy-mm-dd.helper';
+import {
+  toUtcYyyyMmDd,
+  utcYyyyMmDdYesterday,
+} from '../common/helpers/utc-yyyy-mm-dd.helper';
 import { ActivityCalendarResponseDto } from './dto/activity-calendar-response.dto';
 
 @Injectable()
@@ -36,11 +39,7 @@ export class ActivityStreakService {
     }
     const yesterday = utcYyyyMmDdYesterday(today);
     const nextCount =
-      last == null
-        ? 1
-        : last === yesterday
-          ? user.activityStreakCount + 1
-          : 1;
+      last == null ? 1 : last === yesterday ? user.activityStreakCount + 1 : 1;
     user.activityStreakCount = nextCount;
     user.activityStreakLastUtcDate = today;
     await this.appUserRepository.save(user);
@@ -87,7 +86,7 @@ export class ActivityStreakService {
     const from = `${year}-${pad(month)}-01`;
     const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
     const to = `${year}-${pad(month)}-${pad(lastDay)}`;
-    const rows = (await this.progressRepository.query(
+    const rows = await this.progressRepository.query(
       `
       SELECT day
       FROM (
@@ -114,7 +113,7 @@ export class ActivityStreakService {
       ORDER BY 1
       `,
       [appUserId, from, to],
-    )) as { day: string }[];
+    );
     return rows.map((r) => r.day);
   }
 }

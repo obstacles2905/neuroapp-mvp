@@ -1,10 +1,15 @@
 import type { MndMatrixRule } from '../entity/mnd-matrix-rule.entity';
 
 function sortedStackIdsForRule(rule: MndMatrixRule): string[] {
-  return [...rule.stacks].sort((a, b) => a.priority - b.priority).map((s) => s.masterStackId);
+  return [...rule.stacks]
+    .sort((a, b) => a.priority - b.priority)
+    .map((s) => s.masterStackId);
 }
 
-function averagePriorityForStack(stackId: string, rules: MndMatrixRule[]): number {
+function averagePriorityForStack(
+  stackId: string,
+  rules: MndMatrixRule[],
+): number {
   let sum = 0;
   let n = 0;
   for (const rule of rules) {
@@ -42,15 +47,17 @@ function minPriorityForStack(stackId: string, rules: MndMatrixRule[]): number {
  * Пересечение приоритетных стеков по симптомам; если пусто — объединение со скорингом
  * (как в этапе 3 MND: пересечение, иначе обобщение).
  */
-export function resolveEligibleMasterStackIds(rules: MndMatrixRule[]): string[] {
+export function resolveEligibleMasterStackIds(
+  rules: MndMatrixRule[],
+): string[] {
   if (rules.length === 0) {
     return [];
   }
   const perRule = rules.map(sortedStackIdsForRule);
-  const first = new Set(perRule[0]!);
+  const first = new Set(perRule[0]);
   let intersection = first;
   for (let i = 1; i < perRule.length; i++) {
-    const next = new Set(perRule[i]!);
+    const next = new Set(perRule[i]);
     intersection = new Set([...intersection].filter((id) => next.has(id)));
   }
   if (intersection.size > 0) {

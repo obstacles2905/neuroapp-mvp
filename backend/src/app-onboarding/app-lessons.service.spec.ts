@@ -66,7 +66,7 @@ describe('AppLessonsService', () => {
     expect.assertions(2);
     mockCategoryRepo.findPublishedProductionById.mockResolvedValue({
       id: categoryId,
-    } as Category);
+    });
     mockLessonRepo.findPublishedByCategoryId.mockResolvedValue([
       {
         id: lessonId,
@@ -86,6 +86,6 @@ describe('AppLessonsService', () => {
     mockProgressRepo.findByAppUserIdAndLessonIds.mockResolvedValue([progress]);
     const rows = await service.listByCategory(appUserId, categoryId);
     expect(rows).toHaveLength(1);
-    expect(rows[0]!.progress?.percentComplete).toBe(20);
+    expect(rows[0].progress?.percentComplete).toBe(20);
   });
 });

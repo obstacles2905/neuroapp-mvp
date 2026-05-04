@@ -15,7 +15,7 @@ export function pickSessionExercisesFromPool(
   }
   const out = [...shuffled];
   while (out.length < count) {
-    const pick = pool[Math.floor(rng() * pool.length)]!;
+    const pick = pool[Math.floor(rng() * pool.length)];
     out.push(pick);
   }
   return out;

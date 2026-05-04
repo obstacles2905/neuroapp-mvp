@@ -7,11 +7,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '../auth/decorators/public.decorator';
 import { AppJwtAuthGuard } from '../app-auth/guards/app-jwt-auth.guard';
 import { CurrentAppUser } from '../app-auth/decorators/current-app-user.decorator';
@@ -57,7 +53,9 @@ export class AppOnboardingController {
   @UseGuards(AppJwtAuthGuard)
   @ApiBearerAuth('access-token')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Сбросить онбординг (для теста / повторного прохождения)' })
+  @ApiOperation({
+    summary: 'Сбросить онбординг (для теста / повторного прохождения)',
+  })
   replay(@CurrentAppUser() user: RequestAppUser): Promise<void> {
     return this.appOnboardingService.clearForReplay(user.id);
   }

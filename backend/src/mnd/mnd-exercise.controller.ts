@@ -31,7 +31,9 @@ export class MndExerciseController {
   @Get()
   @ApiOperation({ summary: 'List MND exercises' })
   @ApiQuery({ name: 'masterStackId', required: false })
-  findAll(@Query('masterStackId') masterStackId?: string): Promise<MndExercise[]> {
+  findAll(
+    @Query('masterStackId') masterStackId?: string,
+  ): Promise<MndExercise[]> {
     return this.exerciseService.findAll(masterStackId);
   }
 

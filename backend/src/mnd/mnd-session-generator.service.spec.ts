@@ -54,9 +54,9 @@ describe('MndSessionGeneratorService', () => {
   it('throws when user missing', async () => {
     expect.assertions(1);
     mockUserRepo.findById.mockResolvedValue(null);
-    await expect(service.buildDailySessionForUser(userId)).rejects.toBeInstanceOf(
-      UnauthorizedException,
-    );
+    await expect(
+      service.buildDailySessionForUser(userId),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 
   it('throws when no symptoms onboarded', async () => {
@@ -65,18 +65,16 @@ describe('MndSessionGeneratorService', () => {
       id: userId,
       onboardingSymptomRanks: null,
     });
-    await expect(service.buildDailySessionForUser(userId)).rejects.toBeInstanceOf(
-      BadRequestException,
-    );
+    await expect(
+      service.buildDailySessionForUser(userId),
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 
   it('returns steps with expected length', async () => {
     expect.assertions(2);
     mockUserRepo.findById.mockResolvedValue({
       id: userId,
-      onboardingSymptomRanks: [
-        { symptomId, rank: 1, isActive: true },
-      ],
+      onboardingSymptomRanks: [{ symptomId, rank: 1, isActive: true }],
     });
     const rule = {
       symptomId,
@@ -97,7 +95,9 @@ describe('MndSessionGeneratorService', () => {
     for (let i = 0; i < 8; i++) {
       pool.push(
         mkEx(
-          i % 2 === 0 ? MndExerciseDirection.BOTTOM_UP : MndExerciseDirection.TOP_DOWN,
+          i % 2 === 0
+            ? MndExerciseDirection.BOTTOM_UP
+            : MndExerciseDirection.TOP_DOWN,
           200 + i,
         ),
       );
@@ -140,7 +140,9 @@ describe('MndSessionGeneratorService', () => {
     for (let i = 0; i < 8; i++) {
       pool.push(
         mkEx(
-          i % 2 === 0 ? MndExerciseDirection.BOTTOM_UP : MndExerciseDirection.TOP_DOWN,
+          i % 2 === 0
+            ? MndExerciseDirection.BOTTOM_UP
+            : MndExerciseDirection.TOP_DOWN,
           300 + i,
         ),
       );
@@ -201,7 +203,9 @@ describe('MndSessionGeneratorService', () => {
     for (let i = 0; i < 8; i++) {
       pool.push(
         mkEx(
-          i % 2 === 0 ? MndExerciseDirection.BOTTOM_UP : MndExerciseDirection.TOP_DOWN,
+          i % 2 === 0
+            ? MndExerciseDirection.BOTTOM_UP
+            : MndExerciseDirection.TOP_DOWN,
           700 + i,
         ),
       );
@@ -244,7 +248,9 @@ describe('MndSessionGeneratorService', () => {
     for (let i = 0; i < 8; i++) {
       pool.push(
         mkEx(
-          i % 2 === 0 ? MndExerciseDirection.BOTTOM_UP : MndExerciseDirection.TOP_DOWN,
+          i % 2 === 0
+            ? MndExerciseDirection.BOTTOM_UP
+            : MndExerciseDirection.TOP_DOWN,
           800 + i,
         ),
       );

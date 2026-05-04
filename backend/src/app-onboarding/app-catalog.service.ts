@@ -21,9 +21,8 @@ export class AppCatalogService {
       return [];
     }
     const categoryIds = rows.map((c) => c.id);
-    const lessons = await this.lessonRepository.findPublishedByCategoryIds(
-      categoryIds,
-    );
+    const lessons =
+      await this.lessonRepository.findPublishedByCategoryIds(categoryIds);
     const lessonsByCategory = new Map<string, typeof lessons>();
     for (const lesson of lessons) {
       const list = lessonsByCategory.get(lesson.categoryId) ?? [];

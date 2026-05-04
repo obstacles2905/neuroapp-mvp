@@ -68,7 +68,9 @@ export class MndExerciseService {
   private async ensureStackExists(masterStackId: string): Promise<void> {
     const stack = await this.stackRepository.findById(masterStackId);
     if (!stack) {
-      throw new NotFoundException(`MND master stack ${masterStackId} not found`);
+      throw new NotFoundException(
+        `MND master stack ${masterStackId} not found`,
+      );
     }
   }
 

@@ -8,7 +8,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Public } from '../auth/decorators/public.decorator';
 import { CurrentAppUser } from '../app-auth/decorators/current-app-user.decorator';
 import { AppJwtAuthGuard } from '../app-auth/guards/app-jwt-auth.guard';
@@ -43,7 +48,9 @@ export class ActivityStreakController {
   @UseGuards(AppJwtAuthGuard)
   @ApiBearerAuth('access-token')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Сбросить стрик (для тестов/QA, только свой аккаунт)' })
+  @ApiOperation({
+    summary: 'Сбросить стрик (для тестов/QA, только свой аккаунт)',
+  })
   resetStreak(@CurrentAppUser() user: RequestAppUser): Promise<void> {
     return this.activityStreakService.resetStreakTest(user.id);
   }

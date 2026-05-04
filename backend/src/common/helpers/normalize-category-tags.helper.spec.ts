@@ -11,11 +11,7 @@ describe('normalizeCategoryTags', () => {
   it('trims and dedupes case-insensitively', () => {
     expect.assertions(1);
     const tagSleep = 'Сон';
-    const result = normalizeCategoryTags([
-      `  ${tagSleep}  `,
-      'сон',
-      'Стресс',
-    ]);
+    const result = normalizeCategoryTags([`  ${tagSleep}  `, 'сон', 'Стресс']);
     expect(result).toEqual([tagSleep, 'Стресс']);
   });
 });

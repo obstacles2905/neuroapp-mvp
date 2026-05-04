@@ -35,30 +35,25 @@ export class AppLessonsService {
     appUserId: string,
     categoryId: string,
   ): Promise<AppLessonListItemResponseDto[]> {
-    const category = await this.categoryRepository.findPublishedProductionById(
-      categoryId,
-    );
+    const category =
+      await this.categoryRepository.findPublishedProductionById(categoryId);
     if (!category) {
       throw new NotFoundException();
     }
-    const lessons = await this.lessonRepository.findPublishedByCategoryId(
-      categoryId,
-    );
+    const lessons =
+      await this.lessonRepository.findPublishedByCategoryId(categoryId);
     const lessonIds = lessons.map((l) => l.id);
-    const progressRows = await this.appLessonProgressRepository.findByAppUserIdAndLessonIds(
-      appUserId,
-      lessonIds,
-    );
-    const progressByLesson = new Map(
-      progressRows.map((p) => [p.lessonId, p]),
-    );
+    const progressRows =
+      await this.appLessonProgressRepository.findByAppUserIdAndLessonIds(
+        appUserId,
+        lessonIds,
+      );
+    const progressByLesson = new Map(progressRows.map((p) => [p.lessonId, p]));
     return lessons.map((l) => ({
       id: l.id,
       title: l.title,
       order: l.order,
-      progress: this.toProgressSnapshot(
-        progressByLesson.get(l.id),
-      ),
+      progress: this.toProgressSnapshot(progressByLesson.get(l.id)),
     }));
   }
 
@@ -70,10 +65,9 @@ export class AppLessonsService {
     if (!lesson || !lesson.category) {
       throw new NotFoundException();
     }
-    const category =
-      await this.categoryRepository.findPublishedProductionById(
-        lesson.categoryId,
-      );
+    const category = await this.categoryRepository.findPublishedProductionById(
+      lesson.categoryId,
+    );
     if (!category) {
       throw new NotFoundException();
     }
@@ -104,8 +98,9 @@ export class AppLessonsService {
     if (!lesson) {
       throw new NotFoundException();
     }
-    const category =
-      await this.categoryRepository.findPublishedProductionById(lesson.categoryId);
+    const category = await this.categoryRepository.findPublishedProductionById(
+      lesson.categoryId,
+    );
     if (!category || lesson.status !== LessonStatus.PUBLISHED) {
       throw new NotFoundException();
     }

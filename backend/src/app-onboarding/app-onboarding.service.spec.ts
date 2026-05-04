@@ -38,7 +38,10 @@ describe('AppOnboardingService', () => {
       { id: symptomA } as MndSymptom,
       { id: symptomB } as MndSymptom,
     ]);
-    mockAppUserRepo.findById.mockResolvedValue({ id: userId, email: 'a@a.com' });
+    mockAppUserRepo.findById.mockResolvedValue({
+      id: userId,
+      email: 'a@a.com',
+    });
     mockAppUserRepo.save.mockImplementation((u: unknown) => Promise.resolve(u));
     await service.submit(userId, { orderedSymptomIds: [symptomB, symptomA] });
     const saved = mockAppUserRepo.save.mock.calls[0][0] as {

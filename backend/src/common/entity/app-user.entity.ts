@@ -44,13 +44,25 @@ export class AppUser {
   })
   passwordHash: string | null;
 
-  @Column({ name: 'onboarding_completed_at', type: 'timestamptz', nullable: true })
+  @Column({
+    name: 'onboarding_completed_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
   onboardingCompletedAt: Date | null;
 
-  @Column({ name: 'onboarding_skipped_at', type: 'timestamptz', nullable: true })
+  @Column({
+    name: 'onboarding_skipped_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
   onboardingSkippedAt: Date | null;
 
-  @Column({ name: 'onboarding_category_weights', type: 'jsonb', nullable: true })
+  @Column({
+    name: 'onboarding_category_weights',
+    type: 'jsonb',
+    nullable: true,
+  })
   onboardingCategoryRanks: OnboardingCategoryRankItem[] | null;
 
   @Column({ name: 'onboarding_symptom_ranks', type: 'jsonb', nullable: true })
@@ -70,6 +82,10 @@ export class AppUser {
   activityStreakCount: number;
 
   /** Дата (UTC) последнего дня, зачтённого в стрик: YYYY-MM-DD */
-  @Column({ name: 'activity_streak_last_utc_date', type: 'date', nullable: true })
+  @Column({
+    name: 'activity_streak_last_utc_date',
+    type: 'date',
+    nullable: true,
+  })
   activityStreakLastUtcDate: string | null;
 }

@@ -79,9 +79,7 @@ describe('MndMatrixRuleService', () => {
     expect.assertions(1);
     const dto = buildRuleDto(70, 30);
     symptomFindByIdMock.mockResolvedValue(null);
-    await expect(service.create(dto)).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(service.create(dto)).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('create persists rule with ranked stacks', async () => {

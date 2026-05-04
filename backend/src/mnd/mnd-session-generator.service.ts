@@ -51,9 +51,8 @@ export class MndSessionGeneratorService {
         'Нет выбранных симптомов. Завершите онбординг.',
       );
     }
-    const rulesRaw = await this.matrixRuleRepository.findBySymptomIdsWithStacks(
-      symptomIds,
-    );
+    const rulesRaw =
+      await this.matrixRuleRepository.findBySymptomIdsWithStacks(symptomIds);
     const orderedRules = this.orderRulesBySymptoms(symptomIds, rulesRaw);
     if (orderedRules.length === 0) {
       throw new BadRequestException(
@@ -79,9 +78,9 @@ export class MndSessionGeneratorService {
     if (!user) {
       throw new UnauthorizedException();
     }
-    const rulesRaw = await this.matrixRuleRepository.findBySymptomIdsWithStacks([
-      symptomId,
-    ]);
+    const rulesRaw = await this.matrixRuleRepository.findBySymptomIdsWithStacks(
+      [symptomId],
+    );
     const orderedRules = this.orderRulesBySymptoms([symptomId], rulesRaw);
     if (orderedRules.length === 0) {
       throw new BadRequestException(
@@ -116,9 +115,8 @@ export class MndSessionGeneratorService {
         'Нет выбранных симптомов. Завершите онбординг.',
       );
     }
-    const rulesRaw = await this.matrixRuleRepository.findBySymptomIdsWithStacks(
-      symptomIds,
-    );
+    const rulesRaw =
+      await this.matrixRuleRepository.findBySymptomIdsWithStacks(symptomIds);
     const orderedRules = this.orderRulesBySymptoms(symptomIds, rulesRaw);
     if (orderedRules.length === 0) {
       throw new BadRequestException(
@@ -127,11 +125,12 @@ export class MndSessionGeneratorService {
     }
     const stackIds = resolveEligibleMasterStackIds(orderedRules);
     if (stackIds.length === 0) {
-      throw new BadRequestException('Не удалось определить мастер-стеки сессии.');
+      throw new BadRequestException(
+        'Не удалось определить мастер-стеки сессии.',
+      );
     }
-    const exercises = await this.exerciseRepository.findPublishedByMasterStackIds(
-      stackIds,
-    );
+    const exercises =
+      await this.exerciseRepository.findPublishedByMasterStackIds(stackIds);
     const completedIds = new Set(
       await this.mndExerciseCompletionRepository.findMndExerciseIdsCompletedByUser(
         appUserId,
@@ -198,7 +197,9 @@ export class MndSessionGeneratorService {
     } = params;
     const stackIds = resolveEligibleMasterStackIds(orderedRules);
     if (stackIds.length === 0) {
-      throw new BadRequestException('Не удалось определить мастер-стеки сессии.');
+      throw new BadRequestException(
+        'Не удалось определить мастер-стеки сессии.',
+      );
     }
     const avgBottom = Math.round(
       orderedRules.reduce((s, r) => s + r.bottomUpPercent, 0) /

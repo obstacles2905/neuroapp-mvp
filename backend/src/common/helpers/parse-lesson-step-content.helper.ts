@@ -55,7 +55,7 @@ function parseTheoryContent(
     return { success: false, errorMessage: sentencesResult.errorMessage };
   }
   const content: TheoryStepContent = {
-    display_mode: modeRaw as TheoryDisplayMode,
+    display_mode: modeRaw,
     sentences: sentencesResult.value,
   };
   return { success: true, content };

@@ -36,7 +36,9 @@ export class OnboardingCategorySeedService implements OnModuleInit {
 
   async onModuleInit(): Promise<void> {
     if (!isSeedEnabled(this.configService)) {
-      this.logger.log('Onboarding category seed skipped (SEED_ONBOARDING_CATEGORIES off)');
+      this.logger.log(
+        'Onboarding category seed skipped (SEED_ONBOARDING_CATEGORIES off)',
+      );
       return;
     }
     await this.seedIfNeeded();
@@ -45,14 +47,17 @@ export class OnboardingCategorySeedService implements OnModuleInit {
   async seedIfNeeded(): Promise<void> {
     let created = 0;
     for (let i = 0; i < ONBOARDING_CATEGORY_SEED_ROWS.length; i += 1) {
-      const row = ONBOARDING_CATEGORY_SEED_ROWS[i]!;
-      const id = ONBOARDING_CATEGORY_SEED_IDS[i]!;
+      const row = ONBOARDING_CATEGORY_SEED_ROWS[i];
+      const id = ONBOARDING_CATEGORY_SEED_IDS[i];
       const existing = await this.categoryRepository.findById(id);
       if (existing) {
         continue;
       }
       const titleRu = row.titleRu;
-      const tags = [ONBOARDING_CATEGORY_SEED_TAG, `onboarding_${String(i + 1)}`];
+      const tags = [
+        ONBOARDING_CATEGORY_SEED_TAG,
+        `onboarding_${String(i + 1)}`,
+      ];
       const entity = this.categoryRepository.create({
         id,
         title: buildI18nText(titleRu),

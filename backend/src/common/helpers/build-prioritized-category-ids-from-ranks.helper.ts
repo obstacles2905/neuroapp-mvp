@@ -6,7 +6,5 @@ export function buildPrioritizedCategoryIdsFromRanks(
   if (!ranks?.length) {
     return [];
   }
-  return [...ranks]
-    .sort((a, b) => a.rank - b.rank)
-    .map((r) => r.categoryId);
+  return [...ranks].sort((a, b) => a.rank - b.rank).map((r) => r.categoryId);
 }

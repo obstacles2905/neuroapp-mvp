@@ -10,10 +10,17 @@ export class AppMeResponseDto {
   @ApiProperty({ nullable: true })
   displayName: string | null;
 
-  @ApiProperty({ nullable: true, description: 'ISO 8601, если онбординг завершён' })
+  @ApiProperty({
+    nullable: true,
+    description: 'ISO 8601, если онбординг завершён',
+  })
   onboardingCompletedAt: string | null;
 
-  @ApiProperty({ nullable: true, description: 'Пользователь нажал «Пропустить» (можно дойти до приоритетов с профиля)' })
+  @ApiProperty({
+    nullable: true,
+    description:
+      'Пользователь нажал «Пропустить» (можно дойти до приоритетов с профиля)',
+  })
   onboardingSkippedAt: string | null;
 
   @ApiProperty({
@@ -36,6 +43,9 @@ export class AppMeResponseDto {
   @ApiProperty()
   activityStreakCount: number;
 
-  @ApiProperty({ nullable: true, description: 'YYYY-MM-DD (UTC) последнего дня, учтённого в стрик' })
+  @ApiProperty({
+    nullable: true,
+    description: 'YYYY-MM-DD (UTC) последнего дня, учтённого в стрик',
+  })
   activityStreakLastUtcDate: string | null;
 }

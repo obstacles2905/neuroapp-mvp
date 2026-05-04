@@ -42,7 +42,10 @@ export class MndMatrixRuleService {
       bottomUpPercent: dto.bottomUpPercent,
       topDownPercent: dto.topDownPercent,
     });
-    return this.ruleRepository.saveWithStacks(rule, this.buildStacks(dto.stacks));
+    return this.ruleRepository.saveWithStacks(
+      rule,
+      this.buildStacks(dto.stacks),
+    );
   }
 
   async update(
@@ -61,10 +64,7 @@ export class MndMatrixRuleService {
     await this.ruleRepository.remove(rule);
   }
 
-  private applyUpdate(
-    rule: MndMatrixRule,
-    dto: UpdateMndMatrixRuleDto,
-  ): void {
+  private applyUpdate(rule: MndMatrixRule, dto: UpdateMndMatrixRuleDto): void {
     const bottomUpPercent = dto.bottomUpPercent ?? rule.bottomUpPercent;
     const topDownPercent = dto.topDownPercent ?? rule.topDownPercent;
     this.assertPercentBalance(bottomUpPercent, topDownPercent);

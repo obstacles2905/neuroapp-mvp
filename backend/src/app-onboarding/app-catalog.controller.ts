@@ -1,4 +1,10 @@
-import { Controller, Get, Param, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '../auth/decorators/public.decorator';
 import { CurrentAppUser } from '../app-auth/decorators/current-app-user.decorator';
@@ -21,8 +27,12 @@ export class AppCatalogController {
   @Get()
   @UseGuards(AppJwtAuthGuard)
   @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: 'Категории в основном каталоге (для онбординга / учёбы)' })
-  list(@CurrentAppUser() user: RequestAppUser): Promise<AppCategoryListItemResponseDto[]> {
+  @ApiOperation({
+    summary: 'Категории в основном каталоге (для онбординга / учёбы)',
+  })
+  list(
+    @CurrentAppUser() user: RequestAppUser,
+  ): Promise<AppCategoryListItemResponseDto[]> {
     return this.appCatalogService.listPublishedCategoriesForUser(user.id);
   }
 

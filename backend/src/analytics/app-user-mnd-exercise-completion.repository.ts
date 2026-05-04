@@ -23,7 +23,9 @@ export class AppUserMndExerciseCompletionRepository {
       .execute();
   }
 
-  async findMndExerciseIdsCompletedByUser(appUserId: string): Promise<string[]> {
+  async findMndExerciseIdsCompletedByUser(
+    appUserId: string,
+  ): Promise<string[]> {
     const rows = await this.repository.find({
       where: { appUserId },
       select: { mndExerciseId: true },
