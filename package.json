@@ -1,12 +1,20 @@
 {
   "name": "neurosync",
   "private": true,
+  "workspaces": [
+    "backend",
+    "admin",
+    "mobile"
+  ],
   "scripts": {
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "install:all": "npm install && npm install --prefix backend && npm install --prefix admin && npm install --prefix mobile",
-    "lint": "npm run lint --prefix backend && npm run lint --prefix admin",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\""
+    "install:all": "npm install",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
+    "dev:backend": "npm run start:dev -w backend",
+    "dev:admin": "npm run dev -w admin",
+    "dev:mobile": "npm run start -w mobile"
   },
   "devDependencies": {
     "prettier": "^3.5.3"
