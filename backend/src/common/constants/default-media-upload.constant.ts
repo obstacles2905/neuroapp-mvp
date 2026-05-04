@@ -1,0 +1,1 @@
+export const DEFAULT_MEDIA_MAX_FILE_BYTES = 104_857_600;

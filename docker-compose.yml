@@ -1,0 +1,57 @@
+# Host port defaults to 15432 — avoids local Postgres on :5432 and other common mapped ports on Windows.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: neurosync-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-neurosync}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-neurosync_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-neurosync}
+    ports:
+      - "${POSTGRES_PORT:-15432}:5432"
+    volumes:
+      - neurosync_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-neurosync} -d ${POSTGRES_DB:-neurosync}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: neurosync-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - neurosync_minio_data:/data
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: neurosync-minio-init
+    restart: "no"
+    depends_on:
+      - minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      S3_BUCKET: ${S3_BUCKET:-neuro-sync-media}
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for MinIO...';
+      until mc alias set local http://minio:9000 \"$$MINIO_ROOT_USER\" \"$$MINIO_ROOT_PASSWORD\" 2>/dev/null; do sleep 1; done;
+      mc mb --ignore-existing local/$$S3_BUCKET;
+      mc anonymous set download local/$$S3_BUCKET;
+      echo Bucket ready: $$S3_BUCKET;
+      exit 0;
+      "
+
+volumes:
+  neurosync_pg_data:
+  neurosync_minio_data:
