@@ -1,13 +1,16 @@
-/** Сколько кадров снимаем подряд (burst) перед агрегацией в пайплайне. */
-export const POSE_BURST_FRAME_COUNT = 4;
+/**
+ * Сколько кадров снимаем подряд (burst) перед агрегацией в пайплайне.
+ * На слабых устройствах каждый кадр = полный цикл затвора; 3 кадра быстрее и всё ещё хватает на «лучший» кадр.
+ */
+export const POSE_BURST_FRAME_COUNT = 3;
 
-/** Пауза между кадрами burst, мс. */
-export const POSE_BURST_FRAME_DELAY_MS = 220;
+/** Пауза между кадрами burst, мс (после уже медленного takePictureAsync на старых телефонах). */
+export const POSE_BURST_FRAME_DELAY_MS = 90;
 
 /**
- * Секунды обратного отсчёта перед серией: время поставить телефон и встать в полный рост в кадре.
+ * Секунды обратного отсчёта перед серией: время занять позу перед затвором.
  */
-export const POSE_PREFLIGHT_COUNTDOWN_SEC = 8;
+export const POSE_PREFLIGHT_COUNTDOWN_SEC = 3;
 
 /** Файл модели в бандле (Expo plugin mediapipe кладёт в android assets / iOS resources). */
 export const POSE_MODEL_FILENAME = 'pose_landmarker_lite.task';

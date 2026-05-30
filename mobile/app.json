@@ -25,7 +25,8 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.WAKE_LOCK"
       ],
       "package": "com.anonymous.neuroapp"
     },
@@ -42,6 +43,13 @@
         {
           "cameraPermission": "Neuro использует камеру для замеров осанки. Кадры и анализ выполняются на устройстве.",
           "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Neuro запрашивает доступ к галерее только для отладки пайплайна позы на этом устройстве.",
+          "microphonePermission": false
         }
       ],
       [

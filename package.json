@@ -14,12 +14,31 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "dev:backend": "npm run start:dev -w backend",
     "dev:admin": "npm run dev -w admin",
-    "dev:mobile": "npm run start -w mobile"
+    "dev:mobile": "npm run start -w mobile",
+    "build:backend": "npm run build -w backend",
+    "start:backend": "npm run start:prod -w backend",
+    "build:admin": "npm run build -w admin",
+    "android": "npm run android -w mobile",
+    "expo:android": "npm run android -w mobile",
+    "ios": "npm run ios -w mobile"
   },
   "devDependencies": {
     "prettier": "^3.5.3"
   },
   "engines": {
     "node": ">=20"
+  },
+  "overrides": {
+    "react-native-vision-camera": "4.7.3",
+    "react-native-mediapipe-posedetection": {
+      "react-native-vision-camera": "4.7.3"
+    }
+  },
+  "version": "1.0.0",
+  "dependencies": {
+    "expo": "~54.0.34",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-vision-camera": "4.7.3"
   }
 }

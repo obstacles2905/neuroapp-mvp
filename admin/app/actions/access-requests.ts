@@ -1,11 +1,8 @@
 'use server';
 
+import { getApiBase } from '@/lib/api/config';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-
-function getApiBase(): string {
-  return process.env.NEXT_PUBLIC_API_BASE ?? 'http://127.0.0.1:3000/api/admin';
-}
 
 async function authedPost(path: string): Promise<void> {
   const jar = await cookies();

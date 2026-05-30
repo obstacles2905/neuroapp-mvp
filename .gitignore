@@ -33,3 +33,7 @@ coverage/
 
 # Misc
 *.pem
+
+.expo/
+/android
+/app.json

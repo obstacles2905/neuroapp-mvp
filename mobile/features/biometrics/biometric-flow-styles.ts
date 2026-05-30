@@ -66,6 +66,33 @@ export function useBiometricFlowStyles() {
           overflow: 'hidden',
           padding: 16,
         },
+        interpretationBullet: {
+          color: t.textSecondary,
+          fontSize: 15,
+          lineHeight: 22,
+          marginTop: 6,
+          paddingLeft: 4,
+        },
+        interpretationDisclaimer: {
+          color: t.textMuted,
+          fontSize: 13,
+          lineHeight: 19,
+          marginTop: 14,
+        },
+        interpretationHeadline: {
+          color: t.text,
+          fontSize: 19,
+          fontWeight: '800',
+          letterSpacing: -0.35,
+          lineHeight: 26,
+          marginBottom: 4,
+        },
+        interpretationPanel: {
+          backgroundColor: t.backgroundMuted,
+          borderRadius: 12,
+          marginTop: 12,
+          padding: 16,
+        },
         lead: {
           color: t.textSecondary,
           fontSize: 15,

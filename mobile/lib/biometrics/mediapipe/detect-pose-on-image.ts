@@ -12,6 +12,8 @@ type NativePoseSlice = {
 
 export type NativePoseDetectBundle = {
   inferenceTime?: number | undefined;
+  inputImageHeight?: number | undefined;
+  inputImageWidth?: number | undefined;
   results?: NativePoseSlice[] | undefined;
 };
 

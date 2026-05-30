@@ -1,6 +1,7 @@
 import { Link, Tabs } from 'expo-router';
 import React, { useMemo } from 'react';
 import { Platform, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
@@ -15,18 +16,28 @@ function TabBarIcon(props: {
 
 export default function AppTabsLayout(): React.JSX.Element {
   const t = useAppTheme();
+  const insets = useSafeAreaInsets();
   const headerShown = useClientOnlyValue(false, true);
-  const screenOptions = useMemo(
-    () => ({
+  const screenOptions = useMemo(() => {
+    const paddingTop = 8;
+    /** Edge-to-edge + жестовая панель: без insets зона нажатий уезжает под системную навигацию. */
+    const bottomInset = Math.max(
+      insets.bottom,
+      Platform.OS === 'android' ? 20 : 10,
+    );
+    const contentRow = Platform.OS === 'ios' ? 52 : 50;
+    const tabBarHeight = contentRow + paddingTop + bottomInset;
+
+    return {
       tabBarActiveTintColor: t.tabIconSelected,
       tabBarInactiveTintColor: t.tabIconDefault,
       tabBarStyle: {
         backgroundColor: t.surface,
         borderTopColor: t.borderSubtle,
         borderTopWidth: 1,
-        height: Platform.select({ ios: 84, android: 64 }),
-        paddingBottom: Platform.select({ ios: 26, android: 8 }),
-        paddingTop: 8,
+        height: tabBarHeight,
+        paddingBottom: bottomInset,
+        paddingTop,
         elevation: 12,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: -4 },
@@ -52,9 +63,8 @@ export default function AppTabsLayout(): React.JSX.Element {
         color: t.text,
       },
       headerShown,
-    }),
-    [t, headerShown],
-  );
+    };
+  }, [t, headerShown, insets.bottom]);
 
   return (
     <Tabs screenOptions={screenOptions}>

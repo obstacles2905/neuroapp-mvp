@@ -40,3 +40,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Vendor: openSMILE source (~700MB), clone locally or use submodule
+/third_party/

@@ -71,9 +71,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
       return;
     }
     let cancelled = false;
+    const tokenTimeoutMs = 6000;
+
+    async function safeGetStoredToken(): Promise<string | null> {
+      const timeoutPromise = new Promise<null>((resolve) => {
+        setTimeout(resolve, tokenTimeoutMs, null);
+      });
+      try {
+        return await Promise.race([getStoredToken(SECURE_ACCESS_TOKEN_KEY), timeoutPromise]);
+      } catch {
+        return null;
+      }
+    }
+
     (async () => {
       try {
-        const token = await getStoredToken(SECURE_ACCESS_TOKEN_KEY);
+        const token = await safeGetStoredToken();
         if (cancelled) {
           return;
         }
@@ -81,12 +94,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
           return;
         }
         setAccessToken(token);
-        const me = await fetchAppMe();
+        const mePromise = fetchAppMe();
+        const meTimeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('fetchAppMe timeout')), tokenTimeoutMs);
+        });
+        const me = await Promise.race([mePromise, meTimeoutPromise]).catch(() => null);
         if (cancelled) {
           return;
         }
-        setUser(me);
-        setIsLoggedIn(true);
+        if (me != null) {
+          setUser(me);
+          setIsLoggedIn(true);
+        } else {
+          setAccessToken(null);
+          setUser(null);
+          await deleteStoredToken(SECURE_ACCESS_TOKEN_KEY);
+        }
       } catch {
         setAccessToken(null);
         setUser(null);

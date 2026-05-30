@@ -1,17 +1,25 @@
+import { PoseSessionSummaryContent } from '@/features/biometrics/PoseSessionSummaryContent';
 import { useBiometricFlowStyles } from '@/features/biometrics/biometric-flow-styles';
 import {
   POSE_BURST_FRAME_COUNT,
   POSE_BURST_FRAME_DELAY_MS,
+  POSE_PIPELINE_MODEL_ID,
+  POSE_PIPELINE_MODEL_VERSION,
   POSE_PREFLIGHT_COUNTDOWN_SEC,
 } from '@/lib/biometrics/constants/pose-capture.constants';
 import { persistPoseBurstFrames } from '@/lib/biometrics/persist-pose-burst';
+import { savePoseSessionRecord } from '@/lib/biometrics/pose-session-history.store';
 import { runPosePipelineFromBurst } from '@/lib/biometrics/run-pose-pipeline';
 import type {
   PoseBurstObservation,
-  PoseBurstSessionResult,
+  PoseCaptureViewKind,
+  PoseDualViewSessionResult,
+  PoseSingleViewPipelineResult,
 } from '@/lib/biometrics/types/pose-measurement.types';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
+import { useNavigation } from 'expo-router';
 import {
   type ComponentRef,
   type JSX,
@@ -22,6 +30,7 @@ import {
 } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Platform,
   Pressable,
   ScrollView,
@@ -31,10 +40,23 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+type FlowStep =
+  | 'camera_frontal'
+  | 'camera_profile'
+  | 'processing_merge'
+  | 'summary';
+
+const CAPTURE_HINT_FRONTAL =
+  `Анфас: фронталкой на себя. Полный рост и 2–3 м не обязательны: можно ближе и «по грудь», если в кадре видны оба плеча (перекос и линия плеч). Надёжнее для метрик — ещё и линия бёдер в кадре; можно держать телефон в руке. Таймер — встать перед серией из ${String(POSE_BURST_FRAME_COUNT)} снимков.`;
+
+const CAPTURE_HINT_PROFILE =
+  `Профиль: развернись боком к камере. Для углов сутулости/«холки» нужны плечи и опора по тазу — кадр «только лицо» хуже; лучше торс до таза в кадре. Те же ${String(POSE_BURST_FRAME_COUNT)} кадра.`;
+
 export type PostureBurstCaptureProps = {
   onBack: () => void;
-  onComplete: (result: PoseBurstSessionResult) => void;
+  onComplete: (result: PoseDualViewSessionResult) => void;
   screenTitle: string;
+  hideParentTabBar?: boolean;
 };
 
 type CameraRef = ComponentRef<typeof CameraView>;
@@ -51,8 +73,12 @@ async function captureBurstToCache(
   delayMs: number,
 ): Promise<string[]> {
   const uris: string[] = [];
+  // Намеренно НЕ ставим skipProcessing: true — пусть expo-camera применяет EXIF Orientation;
+  // дальше persist-pose-burst ещё раз пропустит JPEG через expo-image-manipulator
+  // и окончательно «выровняет» пиксели + сбросит тег ориентации.
+  const photoOpts = { quality: Platform.OS === 'android' ? 0.72 : 0.75 } as const;
   for (let i = 0; i < frameCount; i += 1) {
-    const photo = await camera.takePictureAsync({ quality: 0.85 });
+    const photo = await camera.takePictureAsync(photoOpts);
     uris.push(photo.uri);
     const hasMore = i + 1 < frameCount;
     if (!hasMore) {
@@ -67,16 +93,19 @@ export function PostureBurstCapture({
   onBack,
   onComplete,
   screenTitle,
+  hideParentTabBar = true,
 }: PostureBurstCaptureProps): JSX.Element {
+  const navigation = useNavigation();
   const t = useAppTheme();
   const bf = useBiometricFlowStyles();
   const cameraRef = useRef<CameraRef>(null);
+  const sessionPackIdRef = useRef<string | null>(null);
+  const frontalPipelinePromiseRef = useRef<Promise<PoseSingleViewPipelineResult> | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraReady, setCameraReady] = useState(false);
-  const [step, setStep] = useState<'camera' | 'processing' | 'summary'>('camera');
+  const [step, setStep] = useState<FlowStep>('camera_frontal');
   const [error, setError] = useState<string | null>(null);
-  const [sessionResult, setSessionResult] =
-    useState<PoseBurstSessionResult | null>(null);
+  const [sessionDual, setSessionDual] = useState<PoseDualViewSessionResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [countdownSec, setCountdownSec] = useState<number | null>(null);
   const countdownAbortRef = useRef(false);
@@ -93,45 +122,184 @@ export function PostureBurstCapture({
     }
   }, [permission, requestPermission]);
 
-  const runBurst = useCallback(async () => {
-    setError(null);
-    setBusy(true);
-    const cam = cameraRef.current;
-    if (cam == null) {
-      setBusy(false);
-      setError('Камера ещё не готова.');
+  useEffect(() => {
+    if (Platform.OS === 'web' || !hideParentTabBar) {
+      return undefined;
+    }
+    const parent = navigation.getParent();
+    if (parent?.setOptions == null) {
+      return undefined;
+    }
+    const onCameraSteps =
+      step === 'camera_frontal' ||
+      step === 'camera_profile' ||
+      step === 'processing_merge';
+    if (onCameraSteps) {
+      parent.setOptions({
+        tabBarStyle: { display: 'none', height: 0, overflow: 'hidden' },
+      });
+    } else {
+      parent.setOptions({ tabBarStyle: undefined });
+    }
+    return () => {
+      parent.setOptions({ tabBarStyle: undefined });
+    };
+  }, [hideParentTabBar, navigation, step]);
+
+  const finalizeBurstFromCacheUris = useCallback(
+    async (cacheUris: readonly string[], viewKind: PoseCaptureViewKind) => {
+      const persistOutcome =
+        viewKind === 'frontal'
+          ? await persistPoseBurstFrames(cacheUris)
+          : await persistPoseBurstFrames(cacheUris, {
+              sessionId: sessionPackIdRef.current!,
+              slot: 'profile',
+            });
+
+      const { frameUris, sessionId } = persistOutcome;
+
+      if (viewKind === 'frontal') {
+        sessionPackIdRef.current = sessionId;
+        const capturedAt = new Date().toISOString();
+        const observation: PoseBurstObservation = {
+          capturedAt,
+          frameUris,
+          viewKind,
+        };
+        frontalPipelinePromiseRef.current = runPosePipelineFromBurst(observation);
+        setStep('camera_profile');
+        return;
+      }
+
+      const capturedAt = new Date().toISOString();
+      const profileObservation: PoseBurstObservation = {
+        capturedAt,
+        frameUris,
+        viewKind: 'profile',
+      };
+
+      const frontalPromise = frontalPipelinePromiseRef.current;
+      if (frontalPromise == null) {
+        throw new Error('Потерян результат анфаса — начни замер сначала.');
+      }
+
+      setStep('processing_merge');
+
+      const [frontalRes, profileRes] = await Promise.all([
+        frontalPromise,
+        runPosePipelineFromBurst(profileObservation),
+      ]);
+
+      const dual: PoseDualViewSessionResult = {
+        frontal: frontalRes,
+        modelId: POSE_PIPELINE_MODEL_ID,
+        modelVersion: POSE_PIPELINE_MODEL_VERSION,
+        profile: profileRes,
+      };
+
+      try {
+        await savePoseSessionRecord(sessionId, dual);
+      } catch {
+        // не блокируем UX
+      }
+
+      setSessionDual(dual);
+      setStep('summary');
+    },
+    [],
+  );
+
+  const runBurst = useCallback(
+    async (viewKind: PoseCaptureViewKind) => {
+      setError(null);
+      setBusy(true);
+      const cam = cameraRef.current;
+      if (cam == null) {
+        setBusy(false);
+        setError('Камера ещё не готова.');
+        return;
+      }
+
+      const cameraStepAfterFail: FlowStep =
+        viewKind === 'frontal' ? 'camera_frontal' : 'camera_profile';
+
+      try {
+        if (viewKind === 'profile' && sessionPackIdRef.current == null) {
+          throw new Error('Сначала снимите анфас, затем профиль.');
+        }
+        const cacheUris = await captureBurstToCache(
+          cam,
+          POSE_BURST_FRAME_COUNT,
+          POSE_BURST_FRAME_DELAY_MS,
+        );
+
+        await finalizeBurstFromCacheUris(cacheUris, viewKind);
+      } catch (e) {
+        setStep(cameraStepAfterFail);
+        const message = e instanceof Error ? e.message : 'Съёмка не удалась.';
+        setError(message);
+      } finally {
+        setBusy(false);
+      }
+    },
+    [finalizeBurstFromCacheUris],
+  );
+
+  const pickDebugBurstFromGallery = useCallback(async () => {
+    const viewKind: PoseCaptureViewKind =
+      step === 'camera_profile' ? 'profile' : 'frontal';
+
+    if (busy || countdownSec != null) {
+      return;
+    }
+    if (viewKind === 'profile' && sessionPackIdRef.current == null) {
+      setError('Сначала передай анфас (камера или галерея).');
       return;
     }
 
+    setError(null);
+
     try {
-      setStep('processing');
-      const cacheUris = await captureBurstToCache(
-        cam,
-        POSE_BURST_FRAME_COUNT,
-        POSE_BURST_FRAME_DELAY_MS,
-      );
-      const persisted = await persistPoseBurstFrames(cacheUris);
-      const capturedAt = new Date().toISOString();
-      const observation: PoseBurstObservation = {
-        capturedAt,
-        frameUris: persisted,
-      };
-      const result = await runPosePipelineFromBurst(observation);
-      setSessionResult(result);
-      setStep('summary');
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        setError('Нужен доступ к фото для загрузки из галереи.');
+        return;
+      }
+
+      const picked = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: false,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 1,
+      });
+
+      if (picked.canceled || picked.assets[0]?.uri == null) {
+        return;
+      }
+
+      const pickedUri = picked.assets[0].uri;
+      const cacheUris = Array.from({ length: POSE_BURST_FRAME_COUNT }, () => pickedUri);
+
+      setBusy(true);
+
+      await finalizeBurstFromCacheUris(cacheUris, viewKind);
     } catch (e) {
-      setStep('camera');
-      const message = e instanceof Error ? e.message : 'Съёмка не удалась.';
+      const cameraStepAfterFail: FlowStep =
+        viewKind === 'frontal' ? 'camera_frontal' : 'camera_profile';
+      setStep(cameraStepAfterFail);
+      const message = e instanceof Error ? e.message : 'Галерея не удалась.';
       setError(message);
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [busy, countdownSec, finalizeBurstFromCacheUris, step]);
 
   const cancelCountdown = useCallback(() => {
     countdownAbortRef.current = true;
     setCountdownSec(null);
   }, []);
+
+  const activeViewForCamera: PoseCaptureViewKind =
+    step === 'camera_profile' ? 'profile' : 'frontal';
 
   const runPreflightCountdown = useCallback(async () => {
     if (!cameraReady || busy) {
@@ -139,6 +307,8 @@ export function PostureBurstCapture({
     }
     setError(null);
     countdownAbortRef.current = false;
+    const viewKind =
+      step === 'camera_profile' ? 'profile' : 'frontal';
     for (let s = POSE_PREFLIGHT_COUNTDOWN_SEC; s >= 1; s -= 1) {
       if (countdownAbortRef.current) {
         setCountdownSec(null);
@@ -151,13 +321,15 @@ export function PostureBurstCapture({
     if (countdownAbortRef.current) {
       return;
     }
-    await runBurst();
-  }, [busy, cameraReady, runBurst]);
+    await runBurst(viewKind);
+  }, [busy, cameraReady, runBurst, step]);
 
   const retake = useCallback(() => {
-    setSessionResult(null);
+    sessionPackIdRef.current = null;
+    frontalPipelinePromiseRef.current = null;
+    setSessionDual(null);
     setError(null);
-    setStep('camera');
+    setStep('camera_frontal');
     setCountdownSec(null);
     countdownAbortRef.current = true;
   }, []);
@@ -201,138 +373,132 @@ export function PostureBurstCapture({
     );
   }
 
-  if (step === 'summary' && sessionResult != null) {
-    const r = sessionResult;
+  if (step === 'processing_merge') {
+    return (
+      <SafeAreaView style={[bf.captureScreen, styles.centered, { paddingHorizontal: 24 }]}>
+        <ActivityIndicator color={t.tint} size="large" />
+        <Text style={[bf.blockTitle, { marginTop: 20, textAlign: 'center' }]}>Собираем отчёт</Text>
+        <Text style={[bf.lead, { textAlign: 'center' }]}>
+          Анфас уже считается в фоне; сейчас параллельно добиваем профиль и склеиваем результат — один раз
+          ожидания вместо двух пауз по минуте.
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (step === 'summary' && sessionDual != null) {
+    const dual = sessionDual;
     return (
       <SafeAreaView style={bf.captureScreen}>
         <ScrollView
           contentContainerStyle={[bf.scroll, { flexGrow: 1 }]}
           style={{ flex: 1 }}
         >
-          <Text style={bf.blockTitle}>Результат замера</Text>
-          <Text style={bf.lead}>
-            Оценка осанки по MediaPipe Pose (lite) на устройстве. Значения ориентировочные и зависят от
-            ракурса и одежды.
-          </Text>
-          <View style={bf.summaryBox}>
-            <Text style={bf.summaryLabel}>Модель / версия протокола</Text>
-            <Text style={bf.summaryValue}>
-              {r.modelId} @ {r.modelVersion}
-            </Text>
-            <Text style={bf.summaryLabel}>Качество кадра (min visibility)</Text>
-            <Text style={bf.summaryValue}>
-              {r.metrics.frameQualityScore != null
-                ? r.metrics.frameQualityScore.toFixed(2)
-                : '—'}
-            </Text>
-            <Text style={bf.summaryLabel}>Наклон головы (условн.)</Text>
-            <Text style={bf.summaryValue}>
-              {r.metrics.headTiltDeg != null ? `${r.metrics.headTiltDeg.toFixed(1)}°` : '—'}
-            </Text>
-            <Text style={bf.summaryLabel}>Плечи к горизонту</Text>
-            <Text style={bf.summaryValue}>
-              {r.metrics.shoulderLineTiltDeg != null
-                ? `${r.metrics.shoulderLineTiltDeg.toFixed(1)}°`
-                : '—'}
-            </Text>
-            <Text style={bf.summaryLabel}>Перекос плеч (proxy)</Text>
-            <Text style={bf.summaryValue}>
-              {r.metrics.shoulderAsymmetryProxy != null
-                ? r.metrics.shoulderAsymmetryProxy.toFixed(1)
-                : '—'}
-            </Text>
-            {r.metrics.avgInferenceMs != null ? (
+          <PoseSessionSummaryContent
+            dual={dual}
+            footer={
               <>
-                <Text style={bf.summaryLabel}>Ср. время анализа кадра</Text>
-                <Text style={bf.summaryValue}>
-                  {`${r.metrics.avgInferenceMs.toFixed(0)} мс`}
-                </Text>
+                <Pressable style={bf.primary} onPress={() => onComplete(dual)}>
+                  <Text style={bf.primaryText}>Продолжить</Text>
+                </Pressable>
+                <Pressable style={bf.secondary} onPress={retake}>
+                  <Text style={bf.secondaryText}>Переснять оба ракурса</Text>
+                </Pressable>
               </>
-            ) : null}
-            <Text style={bf.summaryLabel}>Статус</Text>
-            <Text style={bf.summaryValue}>{r.quality}</Text>
-            {r.qualityNote != null ? (
-              <>
-                <Text style={bf.summaryLabel}>Комментарий</Text>
-                <Text style={bf.summaryValue}>{r.qualityNote}</Text>
-              </>
-            ) : null}
-          </View>
-          <Pressable style={bf.primary} onPress={() => onComplete(r)}>
-            <Text style={bf.primaryText}>Продолжить</Text>
-          </Pressable>
-          <Pressable style={bf.secondary} onPress={retake}>
-            <Text style={bf.secondaryText}>Переснять серию</Text>
-          </Pressable>
+            }
+            lead="Двухракурсный замер (анфас + профиль): ниже — числа по точкам и производным MediaPipe, эталон и отклонение. Запись сохранена в истории на устройстве."
+            title="Результат замера"
+          />
         </ScrollView>
       </SafeAreaView>
     );
   }
 
+  const cameraStepLabel = activeViewForCamera === 'frontal' ? 'Шаг 1 · анфас' : 'Шаг 2 · профиль';
+  const bottomHint =
+    activeViewForCamera === 'frontal'
+      ? 'Оба плеча в кадре (лучше ещё бёдра). Затем — профиль.'
+      : 'Профиль: плечи и нижний торс/таз в кадре. Анфас считается в фоне — можно сразу снимать.';
+  const hintText = activeViewForCamera === 'frontal' ? CAPTURE_HINT_FRONTAL : CAPTURE_HINT_PROFILE;
+
   return (
-    <SafeAreaView style={bf.captureScreen}>
-      <View style={styles.header}>
-        <Pressable
-          style={bf.secondary}
-          onPress={() => {
-            if (countdownSec != null) {
-              cancelCountdown();
-              return;
-            }
-            onBack();
-          }}
-          hitSlop={12}
-        >
-          <Text style={bf.secondaryText}>← Назад</Text>
-        </Pressable>
-        <Text style={bf.captureTitle}>{screenTitle}</Text>
-        <Text style={bf.captureHint}>
-          Постав фронтальной камерой на себя (штатив / полка). Нажми «Таймер» — успеешь занять позу
-          в полный рост; затем автоматически снимем {String(POSE_BURST_FRAME_COUNT)} кадра подряд. Либо
-          «Снять сразу», если телефон близко.
+    <View style={styles.cameraFullscreenRoot}>
+      <CameraView
+        ref={cameraRef}
+        facing="front"
+        style={StyleSheet.absoluteFillObject}
+        onCameraReady={() => setCameraReady(true)}
+      />
+      {countdownSec != null ? (
+        <View style={[styles.countdownOverlay, { backgroundColor: t.scrim }]}>
+          <Text style={[styles.countdownDigit, { color: t.tint }]}>{String(countdownSec)}</Text>
+          <Text style={[styles.countdownHint, { color: t.textInverse }]}>
+            Займи позу и замри
+          </Text>
+          <Pressable
+            style={[styles.countdownCancel, { borderColor: 'rgba(255,255,255,0.35)' }]}
+            onPress={cancelCountdown}
+          >
+            <Text style={[styles.countdownCancelLabel, { color: t.textInverse }]}>
+              Отменить отсчёт
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
+      <SafeAreaView edges={['top']} pointerEvents="box-none" style={styles.topChrome}>
+        <View style={styles.topChromeInner}>
+          <Pressable
+            hitSlop={12}
+            style={styles.topBack}
+            onPress={() => {
+              if (countdownSec != null) {
+                cancelCountdown();
+                return;
+              }
+              if (step === 'camera_profile') {
+                frontalPipelinePromiseRef.current = null;
+                sessionPackIdRef.current = null;
+                setStep('camera_frontal');
+                setError(null);
+                return;
+              }
+              if (step === 'camera_frontal') {
+                onBack();
+              }
+            }}
+          >
+            <Text style={styles.topBackLabel}>← Назад</Text>
+          </Pressable>
+          <Text numberOfLines={1} style={styles.topTitle}>
+            {`${screenTitle} · ${cameraStepLabel}`}
+          </Text>
+          <Pressable
+            hitSlop={8}
+            style={styles.topHelpBtn}
+            onPress={() => Alert.alert('Как снять', hintText)}
+          >
+            <Text style={styles.topHelpLabel}>Подсказка</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+
+      <SafeAreaView edges={['bottom']} style={styles.bottomChrome}>
+        <Text numberOfLines={3} style={styles.bottomHintShort}>
+          {bottomHint}
         </Text>
-      </View>
-      <View style={styles.cameraWrap}>
-        <CameraView
-          ref={cameraRef}
-          facing="front"
-          style={StyleSheet.absoluteFill}
-          onCameraReady={() => setCameraReady(true)}
-        />
-        {countdownSec != null ? (
-          <View style={[styles.countdownOverlay, { backgroundColor: t.scrim }]}>
-            <Text style={[styles.countdownDigit, { color: t.tint }]}>{String(countdownSec)}</Text>
-            <Text style={[styles.countdownHint, { color: t.textInverse }]}>
-              Займи позу и замри
-            </Text>
-            <Pressable
-              style={[styles.countdownCancel, { borderColor: 'rgba(255,255,255,0.35)' }]}
-              onPress={cancelCountdown}
-            >
-              <Text style={[styles.countdownCancelLabel, { color: t.textInverse }]}>
-                Отменить отсчёт
-              </Text>
-            </Pressable>
-          </View>
-        ) : null}
-        {step === 'processing' ? (
-          <View style={[styles.processingOverlay, { backgroundColor: t.background + 'E6' }]}>
-            <ActivityIndicator color={t.tint} size="large" />
-            <Text style={[bf.captureHint, { marginTop: 16 }]}>
-              MediaPipe: анализ серии кадров…
-            </Text>
-          </View>
-        ) : null}
-      </View>
-      <View style={[bf.captureBar, { paddingHorizontal: 20 }]}>
-        {error != null ? (
-          <Text style={[bf.captureHint, { color: t.warningText }]}>{error}</Text>
-        ) : null}
+        {error != null ? <Text style={styles.bottomError}>{error}</Text> : null}
         <Pressable
-          disabled={!cameraReady || busy || countdownSec != null}
+          disabled={
+            !cameraReady ||
+            busy ||
+            countdownSec != null
+          }
           style={[
             bf.primary,
-            (!cameraReady || busy || countdownSec != null) && styles.disabledBtn,
+            (!cameraReady ||
+              busy ||
+              countdownSec != null) &&
+              styles.disabledBtn,
           ]}
           onPress={() => void runPreflightCountdown()}
         >
@@ -341,26 +507,38 @@ export function PostureBurstCapture({
           </Text>
         </Pressable>
         <Pressable
-          disabled={!cameraReady || busy || countdownSec != null}
-          style={bf.secondary}
-          onPress={() => void runBurst()}
+          disabled={
+            !cameraReady ||
+            busy ||
+            countdownSec != null
+          }
+          style={[bf.secondary, styles.bottomSecondaryOnDark]}
+          onPress={() => void runBurst(activeViewForCamera)}
         >
-          <Text style={bf.secondaryText}>
+          <Text style={styles.bottomSecondaryText}>
             Снять сразу ({String(POSE_BURST_FRAME_COUNT)} кадра)
           </Text>
         </Pressable>
-      </View>
-    </SafeAreaView>
+        {__DEV__ ? (
+          <Pressable
+            disabled={busy || countdownSec != null}
+            style={[bf.secondary, styles.bottomSecondaryOnDark]}
+            onPress={() => void pickDebugBurstFromGallery()}
+          >
+            <Text style={styles.bottomSecondaryText}>
+              Дебаг: один снимок из галереи ({String(POSE_BURST_FRAME_COUNT)}×)
+            </Text>
+          </Pressable>
+        ) : null}
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  cameraWrap: {
-    borderRadius: 16,
+  cameraFullscreenRoot: {
+    backgroundColor: '#000',
     flex: 1,
-    marginHorizontal: 20,
-    marginTop: 12,
-    overflow: 'hidden',
   },
   centered: {
     alignItems: 'center',
@@ -369,20 +547,83 @@ const styles = StyleSheet.create({
   disabledBtn: {
     opacity: 0.5,
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
+  topChrome: {
+    left: 0,
+    pointerEvents: 'box-none',
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 12,
   },
-  processingOverlay: {
-    ...StyleSheet.absoluteFillObject,
+  topChromeInner: {
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.42)',
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  topBack: { paddingVertical: 4 },
+  topBackLabel: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  topHelpBtn: {
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  topHelpLabel: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  topTitle: {
+    color: '#FFFFFF',
+    flex: 1,
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  bottomChrome: {
+    backgroundColor: 'rgba(0,0,0,0.62)',
+    bottom: 0,
+    gap: 12,
+    left: 0,
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    position: 'absolute',
+    right: 0,
+    zIndex: 12,
+  },
+  bottomHintShort: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 13,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  bottomError: {
+    color: '#FBBF24',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  bottomSecondaryOnDark: {
+    alignSelf: 'stretch',
+    marginTop: 0,
+  },
+  bottomSecondaryText: {
+    color: '#A5F3FC',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   countdownOverlay: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
+    zIndex: 20,
   },
   countdownDigit: {
     fontSize: 96,

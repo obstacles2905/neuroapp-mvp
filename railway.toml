@@ -1,0 +1,13 @@
+# Railway service config (monorepo root = repository root).
+# In Railway: New Project → Deploy from GitHub → set Root Directory to repo root (not backend/).
+# Add a Postgres plugin and reference DATABASE_URL in the API service variables.
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "backend/Dockerfile"
+
+[deploy]
+healthcheckPath = "/api/admin/health"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

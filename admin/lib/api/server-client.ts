@@ -1,8 +1,5 @@
+import { getApiBase } from '@/lib/api/config';
 import { cookies } from 'next/headers';
-
-function getApiBase(): string {
-  return process.env.NEXT_PUBLIC_API_BASE ?? 'http://127.0.0.1:3000/api/admin';
-}
 
 async function authHeaders(): Promise<HeadersInit> {
   const jar = await cookies();

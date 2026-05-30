@@ -15,6 +15,7 @@ const DEFAULT_CORS_ORIGINS: readonly string[] = [
 ];
 
 const LOCALHOST_ORIGIN_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i;
+const VERCEL_ORIGIN_RE = /^https:\/\/[\w.-]+\.vercel\.app$/i;
 
 function parseEnvCorsOrigins(): string[] {
   const raw = process.env.CORS_ORIGINS;
@@ -35,6 +36,9 @@ function isCorsOriginAllowed(origin: string | undefined): boolean {
     return true;
   }
   if (DEFAULT_CORS_ORIGINS.includes(origin)) {
+    return true;
+  }
+  if (VERCEL_ORIGIN_RE.test(origin)) {
     return true;
   }
   const prod = process.env.NODE_ENV === 'production';
@@ -83,7 +87,8 @@ async function bootstrap(): Promise<void> {
   SwaggerModule.setup('docs', app, document, { useGlobalPrefix: true });
 
   const port = Number.parseInt(process.env.PORT ?? '3000', 10);
-  await app.listen(port);
+  const host = process.env.HOST ?? '0.0.0.0';
+  await app.listen(port, host);
 }
 
 void bootstrap();

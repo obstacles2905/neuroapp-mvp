@@ -4,6 +4,15 @@ import {
 } from '@/constants/onboarding-flow.copy';
 import { useAuth } from '@/contexts/AuthContext';
 import { PostureBurstCapture } from '@/features/biometrics/PostureBurstCapture';
+import {
+  PoseHistoryDetailScreen,
+  PoseHistoryListScreen,
+} from '@/features/biometrics/PoseHistoryScreens';
+import { VoiceCaptureFlow } from '@/features/biometrics/VoiceCaptureFlow';
+import {
+  VoiceHistoryDetailScreen,
+  VoiceHistoryListScreen,
+} from '@/features/biometrics/VoiceHistoryScreens';
 import { useBiometricFlowStyles } from '@/features/biometrics/biometric-flow-styles';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useFocusEffect } from '@react-navigation/native';
@@ -16,6 +25,12 @@ type BioRepeatPhase =
   | 'm1_action'
   | 'm2_about'
   | 'm2_action'
+  | 'history'
+  | 'history_detail'
+  | 'voice_intro'
+  | 'voice_capture'
+  | 'voice_history'
+  | 'voice_history_detail'
   | 'done';
 
 export default function BiometricsRepeatScreen(): React.JSX.Element {
@@ -23,10 +38,14 @@ export default function BiometricsRepeatScreen(): React.JSX.Element {
   const t = useAppTheme();
   const bf = useBiometricFlowStyles();
   const [phase, setPhase] = useState<BioRepeatPhase>('intro');
+  const [historySessionId, setHistorySessionId] = useState<string | null>(null);
+  const [voiceHistorySessionId, setVoiceHistorySessionId] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       setPhase('intro');
+      setHistorySessionId(null);
+      setVoiceHistorySessionId(null);
     }, []),
   );
 
@@ -46,6 +65,90 @@ export default function BiometricsRepeatScreen(): React.JSX.Element {
     );
   }
 
+  if (phase === 'history_detail' && historySessionId != null) {
+    return (
+      <PoseHistoryDetailScreen
+        sessionId={historySessionId}
+        onBack={() => {
+          setHistorySessionId(null);
+          setPhase('history');
+        }}
+      />
+    );
+  }
+
+  if (phase === 'voice_history_detail' && voiceHistorySessionId != null) {
+    return (
+      <VoiceHistoryDetailScreen
+        sessionId={voiceHistorySessionId}
+        onBack={() => {
+          setVoiceHistorySessionId(null);
+          setPhase('voice_history');
+        }}
+      />
+    );
+  }
+
+  if (phase === 'voice_history') {
+    return (
+      <VoiceHistoryListScreen
+        emptyHint={repeatBiometricCopy.voiceHistoryEmpty}
+        leadCopy={repeatBiometricCopy.voiceHistoryLead}
+        title={repeatBiometricCopy.voiceHistoryTitle}
+        onBack={() => setPhase('intro')}
+        onOpenSession={(sid) => {
+          setVoiceHistorySessionId(sid);
+          setPhase('voice_history_detail');
+        }}
+      />
+    );
+  }
+
+  if (phase === 'voice_capture') {
+    return (
+      <VoiceCaptureFlow
+        enableRemoteSync={isLoggedIn}
+        screenTitle={repeatBiometricCopy.voiceIntroTitle}
+        onBack={() => setPhase('voice_intro')}
+        onComplete={() => setPhase('intro')}
+      />
+    );
+  }
+
+  if (phase === 'voice_intro') {
+    return (
+      <ScrollView
+        contentContainerStyle={bf.scroll}
+        style={{ backgroundColor: t.background, flex: 1 }}
+      >
+        <Text style={bf.blockTitle}>{repeatBiometricCopy.voiceIntroTitle}</Text>
+        <Text style={bf.lead}>{repeatBiometricCopy.voiceIntroBody}</Text>
+        <Text style={bf.privacyBox}>{onboardingBiometricCopy.privacyNote}</Text>
+        <Pressable style={bf.primary} onPress={() => setPhase('voice_capture')}>
+          <Text style={bf.primaryText}>{repeatBiometricCopy.voiceCtaStart}</Text>
+        </Pressable>
+        <Pressable style={bf.secondary} onPress={() => setPhase('intro')}>
+          <Text style={bf.secondaryText}>← Назад</Text>
+        </Pressable>
+      </ScrollView>
+    );
+  }
+
+  if (phase === 'history') {
+    return (
+      <PoseHistoryListScreen
+        emptyHint={repeatBiometricCopy.historyEmpty}
+        leadCopy={repeatBiometricCopy.historyLead}
+        title={repeatBiometricCopy.historyTitle}
+        onBack={() => setPhase('intro')}
+        onOpenSession={(sid) => {
+          setHistorySessionId(sid);
+          setPhase('history_detail');
+        }}
+      />
+    );
+  }
+
   if (phase === 'intro') {
     return (
       <ScrollView
@@ -55,6 +158,15 @@ export default function BiometricsRepeatScreen(): React.JSX.Element {
         <Text style={bf.blockTitle}>{repeatBiometricCopy.introTitle}</Text>
         <Text style={bf.lead}>{repeatBiometricCopy.introBody}</Text>
         <Text style={bf.privacyBox}>{onboardingBiometricCopy.privacyNote}</Text>
+        <Pressable style={bf.secondary} onPress={() => setPhase('history')}>
+          <Text style={bf.secondaryText}>{repeatBiometricCopy.historyCta}</Text>
+        </Pressable>
+        <Pressable style={bf.secondary} onPress={() => setPhase('voice_history')}>
+          <Text style={bf.secondaryText}>{repeatBiometricCopy.voiceHistoryCta}</Text>
+        </Pressable>
+        <Pressable style={bf.secondary} onPress={() => setPhase('voice_intro')}>
+          <Text style={bf.secondaryText}>{repeatBiometricCopy.voiceCtaStart}</Text>
+        </Pressable>
         <Pressable style={bf.primary} onPress={() => setPhase('m1_about')}>
           <Text style={bf.primaryText}>{repeatBiometricCopy.ctaStart}</Text>
         </Pressable>
@@ -138,6 +250,9 @@ export default function BiometricsRepeatScreen(): React.JSX.Element {
     >
       <Text style={bf.blockTitle}>{repeatBiometricCopy.doneTitle}</Text>
       <Text style={bf.lead}>{repeatBiometricCopy.doneBody}</Text>
+      <Pressable style={bf.secondary} onPress={() => setPhase('history')}>
+        <Text style={bf.secondaryText}>{repeatBiometricCopy.historyCta}</Text>
+      </Pressable>
       <Pressable style={bf.primary} onPress={() => setPhase('intro')}>
         <Text style={bf.primaryText}>{repeatBiometricCopy.doneCta}</Text>
       </Pressable>

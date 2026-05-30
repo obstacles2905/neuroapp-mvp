@@ -294,6 +294,7 @@ export default function OnboardingScreen(): React.JSX.Element {
   if (phase === 'biometric_m2_action') {
     return (
       <PostureBurstCapture
+        hideParentTabBar={false}
         screenTitle={onboardingBiometricCopy.m2Title}
         onBack={() => setPhase('biometric_m2_about')}
         onComplete={() => {

@@ -1,17 +1,23 @@
+import { Repository } from 'typeorm';
+
 import {
   BadRequestException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+
 import { AppUserRepository } from '../analytics/app-user.repository';
-import { UserLessonProgress } from '../common/entity/user-lesson-progress.entity';
+import {
+  UserLessonProgress,
+} from '../common/entity/user-lesson-progress.entity';
 import {
   toUtcYyyyMmDd,
   utcYyyyMmDdYesterday,
 } from '../common/helpers/utc-yyyy-mm-dd.helper';
-import { ActivityCalendarResponseDto } from './dto/activity-calendar-response.dto';
+import {
+  ActivityCalendarResponseDto,
+} from './dto/activity-calendar-response.dto';
 
 @Injectable()
 export class ActivityStreakService {
@@ -114,6 +120,6 @@ export class ActivityStreakService {
       `,
       [appUserId, from, to],
     );
-    return rows.map((r) => r.day);
+    return rows.map((r: any) => r.day);
   }
 }

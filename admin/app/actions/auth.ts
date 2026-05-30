@@ -1,11 +1,9 @@
 'use server';
 
+import { getApiBase } from '@/lib/api/config';
+import { buildAdminSessionCookieOptions } from '@/lib/auth/cookie-options';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-
-function getApiBase(): string {
-  return process.env.NEXT_PUBLIC_API_BASE ?? 'http://127.0.0.1:3000/api/admin';
-}
 
 type LoginResponse = {
   accessToken: string;
@@ -25,12 +23,7 @@ export async function loginAction(formData: FormData): Promise<void> {
   }
   const data = (await response.json()) as LoginResponse;
   const jar = await cookies();
-  jar.set('admin_token', data.accessToken, {
-    httpOnly: true,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-  });
+  jar.set('admin_token', data.accessToken, buildAdminSessionCookieOptions(60 * 60 * 24 * 7));
   redirect('/dashboard');
 }
 

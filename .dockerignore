@@ -1,0 +1,10 @@
+node_modules
+.git
+.expo
+android
+mobile
+admin/.next
+**/*.md
+**/.env
+**/.env.*
+!**/.env.example

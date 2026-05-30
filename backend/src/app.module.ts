@@ -17,6 +17,7 @@ import {
   AdminUser,
   AppUserMndExerciseCompletion,
   AppUserMndJamExerciseDayCompletion,
+  AppUserVoiceMeasurementSession,
   AppUser,
   Category,
   Lesson,
@@ -31,9 +32,10 @@ import {
   MndSymptom,
   UserLessonProgress,
 } from './common/entity';
-import { readTrimmedConfigString } from './common/helpers/read-trimmed-config-string.helper';
+import { buildTypeOrmOptions } from './common/helpers/build-typeorm-options.helper';
 import { MediaModule } from './media/media.module';
 import { MndModule } from './mnd/mnd.module';
+import { VoiceMeasurementModule } from './voice-measurement/voice-measurement.module';
 
 @Module({
   imports: [
@@ -44,37 +46,13 @@ import { MndModule } from './mnd/mnd.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: readTrimmedConfigString(
-          configService,
-          'DATABASE_HOST',
-          '127.0.0.1',
-        ),
-        port: Number.parseInt(
-          readTrimmedConfigString(configService, 'DATABASE_PORT', '5432'),
-          10,
-        ),
-        username: readTrimmedConfigString(
-          configService,
-          'DATABASE_USER',
-          'neurosync',
-        ),
-        password: readTrimmedConfigString(
-          configService,
-          'DATABASE_PASSWORD',
-          'neurosync_dev',
-        ),
-        database: readTrimmedConfigString(
-          configService,
-          'DATABASE_NAME',
-          'neurosync',
-        ),
-        entities: [
+      useFactory: (configService: ConfigService) =>
+        buildTypeOrmOptions(configService, [
           AdminJoinRequest,
           AdminUser,
           AppUserMndExerciseCompletion,
           AppUserMndJamExerciseDayCompletion,
+          AppUserVoiceMeasurementSession,
           AppUser,
           Category,
           Lesson,
@@ -88,17 +66,7 @@ import { MndModule } from './mnd/mnd.module';
           MndMatrixRuleStack,
           MndSymptom,
           UserLessonProgress,
-        ],
-        synchronize:
-          readTrimmedConfigString(configService, 'DATABASE_SYNC', 'false') ===
-          'true',
-        logging:
-          readTrimmedConfigString(
-            configService,
-            'DATABASE_LOGGING',
-            'false',
-          ) === 'true',
-      }),
+        ]),
     }),
     AuthModule,
     AppAuthModule,
@@ -109,6 +77,7 @@ import { MndModule } from './mnd/mnd.module';
     MndModule,
     ContentBuilderModule,
     AnalyticsModule,
+    VoiceMeasurementModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: JwtAuthGuard }],

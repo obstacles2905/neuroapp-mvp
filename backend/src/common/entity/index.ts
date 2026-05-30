@@ -2,6 +2,7 @@ export * from './admin-join-request.entity';
 export * from './admin-user.entity';
 export * from './app-user-mnd-exercise-completion.entity';
 export * from './app-user-mnd-jam-exercise-day-completion.entity';
+export * from './app-user-voice-measurement-session.entity';
 export * from './app-user.entity';
 export * from './category.entity';
 export * from './lesson.entity';
