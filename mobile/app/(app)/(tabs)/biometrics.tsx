@@ -3,15 +3,17 @@ import {
   repeatBiometricCopy,
 } from '@/constants/onboarding-flow.copy';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  BiometricsUnifiedHistoryScreen,
+  type BiometricsHistoryKind,
+} from '@/features/biometrics/BiometricsUnifiedHistoryScreen';
 import { PostureBurstCapture } from '@/features/biometrics/PostureBurstCapture';
 import {
   PoseHistoryDetailScreen,
-  PoseHistoryListScreen,
 } from '@/features/biometrics/PoseHistoryScreens';
 import { VoiceCaptureFlow } from '@/features/biometrics/VoiceCaptureFlow';
 import {
   VoiceHistoryDetailScreen,
-  VoiceHistoryListScreen,
 } from '@/features/biometrics/VoiceHistoryScreens';
 import { useBiometricFlowStyles } from '@/features/biometrics/biometric-flow-styles';
 import { useAppTheme } from '@/hooks/useAppTheme';
@@ -29,23 +31,24 @@ type BioRepeatPhase =
   | 'history_detail'
   | 'voice_intro'
   | 'voice_capture'
-  | 'voice_history'
-  | 'voice_history_detail'
   | 'done';
+
+type HistoryDetailTarget = {
+  kind: BiometricsHistoryKind;
+  sessionId: string;
+};
 
 export default function BiometricsRepeatScreen(): React.JSX.Element {
   const { isLoggedIn, isReady } = useAuth();
   const t = useAppTheme();
   const bf = useBiometricFlowStyles();
   const [phase, setPhase] = useState<BioRepeatPhase>('intro');
-  const [historySessionId, setHistorySessionId] = useState<string | null>(null);
-  const [voiceHistorySessionId, setVoiceHistorySessionId] = useState<string | null>(null);
+  const [historyDetail, setHistoryDetail] = useState<HistoryDetailTarget | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       setPhase('intro');
-      setHistorySessionId(null);
-      setVoiceHistorySessionId(null);
+      setHistoryDetail(null);
     }, []),
   );
 
@@ -65,40 +68,39 @@ export default function BiometricsRepeatScreen(): React.JSX.Element {
     );
   }
 
-  if (phase === 'history_detail' && historySessionId != null) {
+  if (phase === 'history_detail' && historyDetail != null) {
+    if (historyDetail.kind === 'pose') {
+      return (
+        <PoseHistoryDetailScreen
+          sessionId={historyDetail.sessionId}
+          onBack={() => {
+            setHistoryDetail(null);
+            setPhase('history');
+          }}
+        />
+      );
+    }
     return (
-      <PoseHistoryDetailScreen
-        sessionId={historySessionId}
+      <VoiceHistoryDetailScreen
+        sessionId={historyDetail.sessionId}
         onBack={() => {
-          setHistorySessionId(null);
+          setHistoryDetail(null);
           setPhase('history');
         }}
       />
     );
   }
 
-  if (phase === 'voice_history_detail' && voiceHistorySessionId != null) {
+  if (phase === 'history') {
     return (
-      <VoiceHistoryDetailScreen
-        sessionId={voiceHistorySessionId}
-        onBack={() => {
-          setVoiceHistorySessionId(null);
-          setPhase('voice_history');
-        }}
-      />
-    );
-  }
-
-  if (phase === 'voice_history') {
-    return (
-      <VoiceHistoryListScreen
-        emptyHint={repeatBiometricCopy.voiceHistoryEmpty}
-        leadCopy={repeatBiometricCopy.voiceHistoryLead}
-        title={repeatBiometricCopy.voiceHistoryTitle}
+      <BiometricsUnifiedHistoryScreen
+        emptyHint={repeatBiometricCopy.historyEmpty}
+        leadCopy={repeatBiometricCopy.historyLead}
+        title={repeatBiometricCopy.historyTitle}
         onBack={() => setPhase('intro')}
-        onOpenSession={(sid) => {
-          setVoiceHistorySessionId(sid);
-          setPhase('voice_history_detail');
+        onOpenSession={(kind, sessionId) => {
+          setHistoryDetail({ kind, sessionId });
+          setPhase('history_detail');
         }}
       />
     );
@@ -110,7 +112,7 @@ export default function BiometricsRepeatScreen(): React.JSX.Element {
         enableRemoteSync={isLoggedIn}
         screenTitle={repeatBiometricCopy.voiceIntroTitle}
         onBack={() => setPhase('voice_intro')}
-        onComplete={() => setPhase('intro')}
+        onComplete={() => setPhase('done')}
       />
     );
   }
@@ -127,25 +129,10 @@ export default function BiometricsRepeatScreen(): React.JSX.Element {
         <Pressable style={bf.primary} onPress={() => setPhase('voice_capture')}>
           <Text style={bf.primaryText}>{repeatBiometricCopy.voiceCtaStart}</Text>
         </Pressable>
-        <Pressable style={bf.secondary} onPress={() => setPhase('intro')}>
+        <Pressable style={bf.secondary} onPress={() => setPhase('m2_about')}>
           <Text style={bf.secondaryText}>← Назад</Text>
         </Pressable>
       </ScrollView>
-    );
-  }
-
-  if (phase === 'history') {
-    return (
-      <PoseHistoryListScreen
-        emptyHint={repeatBiometricCopy.historyEmpty}
-        leadCopy={repeatBiometricCopy.historyLead}
-        title={repeatBiometricCopy.historyTitle}
-        onBack={() => setPhase('intro')}
-        onOpenSession={(sid) => {
-          setHistorySessionId(sid);
-          setPhase('history_detail');
-        }}
-      />
     );
   }
 
@@ -160,12 +147,6 @@ export default function BiometricsRepeatScreen(): React.JSX.Element {
         <Text style={bf.privacyBox}>{onboardingBiometricCopy.privacyNote}</Text>
         <Pressable style={bf.secondary} onPress={() => setPhase('history')}>
           <Text style={bf.secondaryText}>{repeatBiometricCopy.historyCta}</Text>
-        </Pressable>
-        <Pressable style={bf.secondary} onPress={() => setPhase('voice_history')}>
-          <Text style={bf.secondaryText}>{repeatBiometricCopy.voiceHistoryCta}</Text>
-        </Pressable>
-        <Pressable style={bf.secondary} onPress={() => setPhase('voice_intro')}>
-          <Text style={bf.secondaryText}>{repeatBiometricCopy.voiceCtaStart}</Text>
         </Pressable>
         <Pressable style={bf.primary} onPress={() => setPhase('m1_about')}>
           <Text style={bf.primaryText}>{repeatBiometricCopy.ctaStart}</Text>
@@ -238,7 +219,7 @@ export default function BiometricsRepeatScreen(): React.JSX.Element {
       <PostureBurstCapture
         screenTitle={onboardingBiometricCopy.m2Title}
         onBack={() => setPhase('m2_about')}
-        onComplete={() => setPhase('done')}
+        onComplete={() => setPhase('voice_intro')}
       />
     );
   }
