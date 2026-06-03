@@ -3,5 +3,5 @@
   "installCommand": "cd .. && npm ci",
   "buildCommand": "npm run build:web",
   "outputDirectory": "dist",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [{ "source": "/((?!_expo/).*)", "destination": "/index.html" }]
 }
