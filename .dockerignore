@@ -2,7 +2,9 @@ node_modules
 .git
 .expo
 android
-mobile
+# Mobile sources are not needed for the backend image; workspace package.json is.
+mobile/**
+!mobile/package.json
 admin/.next
 **/*.md
 **/.env
