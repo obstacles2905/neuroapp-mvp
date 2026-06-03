@@ -7,6 +7,8 @@ builder = "DOCKERFILE"
 dockerfilePath = "backend/Dockerfile"
 
 [deploy]
+# Must match backend/Dockerfile CMD. Do not use `npm run start -w backend` (runs `nest start`, needs devDependencies).
+startCommand = "node backend/dist/main.js"
 healthcheckPath = "/api/admin/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
