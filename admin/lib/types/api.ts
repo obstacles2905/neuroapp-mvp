@@ -63,6 +63,17 @@ export type AppUserSummary = {
   lessonsCompleted: number;
   lessonsInProgress: number;
   lastActiveAt: string | null;
+  totalAppMinutes: number;
+  totalExerciseMinutes: number;
+  lastSeenAt: string | null;
+  sessionsLast7d: number;
+};
+
+export type UsageDailyRow = {
+  localDay: string;
+  appMs: number;
+  exerciseMs: number;
+  sessionCount: number;
 };
 
 export type LessonProgressRow = {
@@ -79,6 +90,12 @@ export type AppUserDetail = {
   displayName: string | null;
   createdAt: string;
   progress: LessonProgressRow[];
+  usageTimezone: string | null;
+  totalAppMinutes: number;
+  totalExerciseMinutes: number;
+  totalPassiveMinutes: number;
+  lastSeenAt: string | null;
+  usageByDay: UsageDailyRow[];
 };
 
 export type MndSymptom = {

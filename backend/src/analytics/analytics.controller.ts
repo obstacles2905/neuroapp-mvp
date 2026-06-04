@@ -1,5 +1,11 @@
-import { Controller, Get, Param, ParseUUIDPipe } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Query,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AnalyticsService } from './analytics.service';
 import { AppUserDetailResponseDto } from './dto/app-user-detail-response.dto';
 import { AppUserSummaryResponseDto } from './dto/app-user-summary-response.dto';
@@ -17,10 +23,22 @@ export class AnalyticsController {
   }
 
   @Get('users/:id')
-  @ApiOperation({ summary: 'App user detail with per-lesson progress' })
+  @ApiOperation({ summary: 'App user detail with per-lesson progress and usage' })
+  @ApiQuery({
+    name: 'from',
+    required: false,
+    description: 'Начало периода (локальный день YYYY-MM-DD пользователя)',
+  })
+  @ApiQuery({
+    name: 'to',
+    required: false,
+    description: 'Конец периода (локальный день YYYY-MM-DD пользователя)',
+  })
   getUser(
     @Param('id', ParseUUIDPipe) id: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
   ): Promise<AppUserDetailResponseDto> {
-    return this.analyticsService.getUserDetail(id);
+    return this.analyticsService.getUserDetail(id, from, to);
   }
 }

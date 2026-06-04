@@ -33,52 +33,73 @@ describe('ActivityStreakService', () => {
     service = module.get<ActivityStreakService>(ActivityStreakService);
   });
 
-  it('first qualifying day sets count to 1', async () => {
+  it('first qualifying completion sets count to 1', async () => {
     expect.assertions(2);
     mockRepo.findById.mockResolvedValue({
       id: userId,
       activityStreakCount: 0,
-      activityStreakLastUtcDate: null,
+      activityStreakLastCompletedAt: null,
     });
-    const d = new Date('2026-04-23T15:00:00.000Z');
-    await service.onQualifyingActivityDay(userId, d);
+    const now = new Date('2026-06-01T10:00:00.000Z');
+    await service.onQualifyingActivityCompletion(userId, now);
     const saved = mockRepo.save.mock.calls[0][0] as {
       activityStreakCount: number;
-      activityStreakLastUtcDate: string;
+      activityStreakLastCompletedAt: Date;
     };
     expect(saved.activityStreakCount).toBe(1);
-    expect(saved.activityStreakLastUtcDate).toBe('2026-04-23');
+    expect(saved.activityStreakLastCompletedAt).toEqual(now);
   });
 
-  it('second activity same UTC day does not increment', async () => {
+  it('second completion within 24h increments', async () => {
     expect.assertions(1);
+    const prev = new Date('2026-06-01T10:00:00.000Z');
     mockRepo.findById.mockResolvedValue({
       id: userId,
       activityStreakCount: 1,
-      activityStreakLastUtcDate: '2026-04-23',
+      activityStreakLastCompletedAt: prev,
     });
-    await service.onQualifyingActivityDay(
+    await service.onQualifyingActivityCompletion(
       userId,
-      new Date('2026-04-23T22:00:00.000Z'),
+      new Date('2026-06-02T09:00:00.000Z'),
     );
-    expect(mockRepo.save).not.toHaveBeenCalled();
+    const saved = mockRepo.save.mock.calls[0][0] as {
+      activityStreakCount: number;
+    };
+    expect(saved.activityStreakCount).toBe(2);
   });
 
-  it('next consecutive day increments', async () => {
+  it('completion after 24h gap restarts at 1', async () => {
     expect.assertions(1);
     mockRepo.findById.mockResolvedValue({
       id: userId,
       activityStreakCount: 2,
-      activityStreakLastUtcDate: '2026-04-22',
+      activityStreakLastCompletedAt: new Date('2026-06-01T10:00:00.000Z'),
     });
-    await service.onQualifyingActivityDay(
+    await service.onQualifyingActivityCompletion(
       userId,
-      new Date('2026-04-23T12:00:00.000Z'),
+      new Date('2026-06-03T10:01:00.000Z'),
     );
     const saved = mockRepo.save.mock.calls[0][0] as {
       activityStreakCount: number;
     };
-    expect(saved.activityStreakCount).toBe(3);
+    expect(saved.activityStreakCount).toBe(1);
+  });
+
+  it('persistExpiredStreakIfNeeded zeroes stale count', async () => {
+    expect.assertions(1);
+    mockRepo.findById.mockResolvedValue({
+      id: userId,
+      activityStreakCount: 3,
+      activityStreakLastCompletedAt: new Date('2026-06-01T10:00:00.000Z'),
+    });
+    await service.persistExpiredStreakIfNeeded(
+      userId,
+      new Date('2026-06-03T11:00:00.000Z'),
+    );
+    const saved = mockRepo.save.mock.calls[0][0] as {
+      activityStreakCount: number;
+    };
+    expect(saved.activityStreakCount).toBe(0);
   });
 
   it('calendar merges lesson and mnd completion days', async () => {

@@ -1,6 +1,7 @@
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
+import { ActivityStreakService } from '../activity-streak/activity-streak.service';
 import { AppUserRepository } from '../analytics/app-user.repository';
 import { AppAuthService } from './app-auth.service';
 
@@ -27,6 +28,12 @@ describe('AppAuthService', () => {
   const mockJwt = {
     signAsync: jest.fn().mockResolvedValue(accessToken),
   };
+  const mockStreak = {
+    persistExpiredStreakIfNeeded: jest.fn().mockResolvedValue(undefined),
+    resolveEffectiveStreak: jest.fn(
+      (count: number) => count,
+    ),
+  };
 
   let service: AppAuthService;
 
@@ -38,6 +45,7 @@ describe('AppAuthService', () => {
         AppAuthService,
         { provide: AppUserRepository, useValue: mockRepo },
         { provide: JwtService, useValue: mockJwt },
+        { provide: ActivityStreakService, useValue: mockStreak },
       ],
     }).compile();
     service = module.get<AppAuthService>(AppAuthService);

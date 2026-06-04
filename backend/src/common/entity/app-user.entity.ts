@@ -77,15 +77,30 @@ export class AppUser {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 
-  /** Текущая серия календарных дней (UTC) с ≥1 событием «активности» */
+  /**
+   * Серия завершённых упражнений подряд: каждое следующее — не позднее 24 ч
+   * после предыдущего засчитанного завершения.
+   */
   @Column({ name: 'activity_streak_count', type: 'int', default: 0 })
   activityStreakCount: number;
 
-  /** Дата (UTC) последнего дня, зачтённого в стрик: YYYY-MM-DD */
+  /** Момент последнего завершённого упражнения, засчитанного в стрик */
   @Column({
-    name: 'activity_streak_last_utc_date',
-    type: 'date',
+    name: 'activity_streak_last_completed_at',
+    type: 'timestamptz',
     nullable: true,
   })
-  activityStreakLastUtcDate: string | null;
+  activityStreakLastCompletedAt: Date | null;
+
+  /** IANA timezone (например Europe/Moscow) для дневной аналитики */
+  @Column({
+    name: 'usage_timezone',
+    type: 'varchar',
+    length: 64,
+    nullable: true,
+  })
+  usageTimezone: string | null;
+
+  @Column({ name: 'last_seen_at', type: 'timestamptz', nullable: true })
+  lastSeenAt: Date | null;
 }

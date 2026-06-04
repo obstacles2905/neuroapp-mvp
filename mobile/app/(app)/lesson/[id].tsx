@@ -22,6 +22,7 @@ import {
 } from 'react-native';
 
 import { flattenLessonBlocks } from '@/lib/lesson/flatten-lesson-blocks';
+import { useUsageExerciseLessonScreen } from '@/hooks/useUsageTracking';
 
 function formatLessonCompletedLine(iso: string | null): string | null {
   if (iso == null || iso.length === 0) {
@@ -42,6 +43,7 @@ export default function LessonPlayerScreen(): React.JSX.Element {
     id: string;
     title?: string;
   }>();
+  useUsageExerciseLessonScreen(typeof id === 'string' ? id : undefined);
   const navigation = useNavigation();
   const router = useRouter();
   const [lesson, setLesson] = useState<AppLessonDetail | null>(null);

@@ -3,15 +3,22 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserLessonProgressStatus } from '../common/enums/user-lesson-progress-status.enum';
 import { AnalyticsService } from './analytics.service';
 import { AppUserRepository } from './app-user.repository';
+import { UsageTrackingRepository } from '../usage-tracking/usage-tracking.repository';
 
 describe('AnalyticsService', () => {
   let service: AnalyticsService;
   const findAllMock = jest.fn();
   const findByIdMock = jest.fn();
+  const findTotalsForUsersMock = jest.fn();
+  const sumSessionsMock = jest.fn();
 
   beforeEach(async () => {
     findAllMock.mockReset();
     findByIdMock.mockReset();
+    findTotalsForUsersMock.mockReset();
+    sumSessionsMock.mockReset();
+    findTotalsForUsersMock.mockResolvedValue([]);
+    sumSessionsMock.mockResolvedValue(0);
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AnalyticsService,
@@ -20,6 +27,18 @@ describe('AnalyticsService', () => {
           useValue: {
             findAllWithProgress: findAllMock,
             findByIdWithProgressAndLessons: findByIdMock,
+          },
+        },
+        {
+          provide: UsageTrackingRepository,
+          useValue: {
+            findTotalsForUsers: findTotalsForUsersMock,
+            sumSessionsSinceLocalDay: sumSessionsMock,
+            findTotalsForUser: jest.fn().mockResolvedValue({
+              totalAppMs: '0',
+              totalExerciseMs: '0',
+            }),
+            findDailyInRange: jest.fn().mockResolvedValue([]),
           },
         },
       ],
@@ -35,6 +54,8 @@ describe('AnalyticsService', () => {
         id: userId,
         email: 'a@b.c',
         displayName: 'Test',
+        usageTimezone: null,
+        lastSeenAt: null,
         progress: [
           { status: UserLessonProgressStatus.COMPLETED, lastActiveAt: null },
           { status: UserLessonProgressStatus.IN_PROGRESS, lastActiveAt: null },

@@ -8,16 +8,15 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { AppUserRepository } from '../analytics/app-user.repository';
-import {
-  UserLessonProgress,
-} from '../common/entity/user-lesson-progress.entity';
-import {
-  toUtcYyyyMmDd,
-  utcYyyyMmDdYesterday,
-} from '../common/helpers/utc-yyyy-mm-dd.helper';
+import { UserLessonProgress } from '../common/entity/user-lesson-progress.entity';
 import {
   ActivityCalendarResponseDto,
 } from './dto/activity-calendar-response.dto';
+import {
+  getEffectiveActivityStreakCount,
+  isActivityStreakExpired,
+  nextActivityStreakCountAfterCompletion,
+} from './activity-streak.logic';
 
 @Injectable()
 export class ActivityStreakService {
@@ -28,9 +27,11 @@ export class ActivityStreakService {
   ) {}
 
   /**
-   * Один календарный день (UTC) = одно зачисление в стрик, даже при нескольких уроках.
+   * Засчитывает стрик только при полном завершении упражнения (урок / MND).
+   * Счётчик растёт, если новое завершение не позднее 24 ч после предыдущего;
+   * иначе серия обрывается и начинается с 1.
    */
-  async onQualifyingActivityDay(
+  async onQualifyingActivityCompletion(
     appUserId: string,
     now: Date = new Date(),
   ): Promise<void> {
@@ -38,16 +39,57 @@ export class ActivityStreakService {
     if (user == null) {
       throw new UnauthorizedException();
     }
-    const today = toUtcYyyyMmDd(now);
-    const last = user.activityStreakLastUtcDate;
-    if (last === today) {
+    const nextCount = nextActivityStreakCountAfterCompletion(
+      user.activityStreakCount,
+      user.activityStreakLastCompletedAt,
+      now,
+    );
+    user.activityStreakCount = nextCount;
+    user.activityStreakLastCompletedAt = now;
+    await this.appUserRepository.save(user);
+  }
+
+  /** @deprecated alias for callers — same 24h completion rules */
+  async onQualifyingActivityDay(
+    appUserId: string,
+    now?: Date,
+  ): Promise<void> {
+    return this.onQualifyingActivityCompletion(appUserId, now);
+  }
+
+  resolveEffectiveStreak(
+    storedCount: number,
+    lastCompletedAt: Date | string | null,
+    now: Date = new Date(),
+  ): number {
+    return getEffectiveActivityStreakCount(
+      storedCount,
+      lastCompletedAt,
+      now,
+    );
+  }
+
+  /**
+   * Обнуляет просроченный стрик в БД (например при GET /me).
+   */
+  async persistExpiredStreakIfNeeded(
+    appUserId: string,
+    now: Date = new Date(),
+  ): Promise<void> {
+    const user = await this.appUserRepository.findById(appUserId);
+    if (user == null) {
+      throw new UnauthorizedException();
+    }
+    if (
+      user.activityStreakCount <= 0 ||
+      user.activityStreakLastCompletedAt == null
+    ) {
       return;
     }
-    const yesterday = utcYyyyMmDdYesterday(today);
-    const nextCount =
-      last == null ? 1 : last === yesterday ? user.activityStreakCount + 1 : 1;
-    user.activityStreakCount = nextCount;
-    user.activityStreakLastUtcDate = today;
+    if (!isActivityStreakExpired(user.activityStreakLastCompletedAt, now)) {
+      return;
+    }
+    user.activityStreakCount = 0;
     await this.appUserRepository.save(user);
   }
 
@@ -57,7 +99,7 @@ export class ActivityStreakService {
       throw new UnauthorizedException();
     }
     user.activityStreakCount = 0;
-    user.activityStreakLastUtcDate = null;
+    user.activityStreakLastCompletedAt = null;
     await this.appUserRepository.save(user);
   }
 
@@ -120,6 +162,6 @@ export class ActivityStreakService {
       `,
       [appUserId, from, to],
     );
-    return rows.map((r: any) => r.day);
+    return rows.map((r: { day: string }) => r.day);
   }
 }

@@ -21,6 +21,19 @@ import {
 import type { AppTokens } from '@/constants/theme';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
+function formatStreakLastCompleted(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) {
+    return iso;
+  }
+  return d.toLocaleString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 function ruDaysWord(n: number): string {
   const m10 = n % 10;
   const m100 = n % 100;
@@ -177,7 +190,7 @@ export default function ProfileScreen(): React.JSX.Element {
   }
 
   const streakCount = user?.activityStreakCount ?? 0;
-  const streakDay = user?.activityStreakLastUtcDate;
+  const streakLastCompletedAt = user?.activityStreakLastCompletedAt;
 
   return (
     <ScrollView
@@ -197,17 +210,19 @@ export default function ProfileScreen(): React.JSX.Element {
       ) : null}
       {isLoggedIn && user ? (
         <View style={styles.streakCard}>
-          <Text style={styles.streakTitle}>Стрик и календарь (UTC)</Text>
+          <Text style={styles.streakTitle}>Стрик и календарь</Text>
           <Text style={styles.streakValue}>
             {String(streakCount)} {ruDaysWord(streakCount)} подряд
           </Text>
-          {streakDay ? (
+          {streakLastCompletedAt ? (
             <Text style={styles.streakSub}>
-              Последний засчитанный день: {streakDay}
+              Последнее завершённое упражнение:{' '}
+              {formatStreakLastCompleted(streakLastCompletedAt)}
             </Text>
           ) : (
             <Text style={styles.streakSub}>
-              Засчитывается завершение урока (без дубля в тот же день).
+              Считается только полное завершение упражнения. Нужно повторить в
+              течение 24 ч, иначе стрик обнуляется.
             </Text>
           )}
           <View style={styles.calSummary}>
@@ -236,8 +251,8 @@ export default function ProfileScreen(): React.JSX.Element {
             />
           ) : null}
           <Text style={styles.calHint}>
-            Подсветка — дни, когда завершён хотя бы один урок (дата в UTC, как
-            в стрике).
+            Подсветка — дни с хотя бы одним завершённым уроком или MND-упражнением
+            (календарь UTC).
           </Text>
           {streakError ? <Text style={styles.err}>{streakError}</Text> : null}
           <Pressable

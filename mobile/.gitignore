@@ -41,5 +41,9 @@ yarn-error.*
 /ios
 /android
 
+# Local release builds (do not commit)
+*.apk
+*.aab
+
 # Vendor: openSMILE source (~700MB), clone locally or use submodule
 /third_party/

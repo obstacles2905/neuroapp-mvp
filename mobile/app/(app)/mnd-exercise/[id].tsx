@@ -22,6 +22,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useUsageExerciseMndScreen } from '@/hooks/useUsageTracking';
 
 function stepsWithFallback(detail: AppMndExerciseDetail): LessonStepInBlock[] {
   const flat = flattenLessonBlocks(detail.blocks);
@@ -52,6 +53,7 @@ export default function MndExercisePlayerScreen(): React.JSX.Element {
     title?: string;
     fromJam?: string;
   }>();
+  useUsageExerciseMndScreen(typeof id === 'string' ? id : undefined);
   const navigation = useNavigation();
   const router = useRouter();
   const [exercise, setExercise] = useState<AppMndExerciseDetail | null>(null);

@@ -17,6 +17,8 @@ import {
   AdminUser,
   AppUserMndExerciseCompletion,
   AppUserMndJamExerciseDayCompletion,
+  AppUserUsageDaily,
+  AppUserUsageSegment,
   AppUserVoiceMeasurementSession,
   AppUser,
   Category,
@@ -35,6 +37,7 @@ import {
 import { buildTypeOrmOptions } from './common/helpers/build-typeorm-options.helper';
 import { MediaModule } from './media/media.module';
 import { MndModule } from './mnd/mnd.module';
+import { UsageTrackingModule } from './usage-tracking/usage-tracking.module';
 import { VoiceMeasurementModule } from './voice-measurement/voice-measurement.module';
 
 @Module({
@@ -52,6 +55,8 @@ import { VoiceMeasurementModule } from './voice-measurement/voice-measurement.mo
           AdminUser,
           AppUserMndExerciseCompletion,
           AppUserMndJamExerciseDayCompletion,
+          AppUserUsageDaily,
+          AppUserUsageSegment,
           AppUserVoiceMeasurementSession,
           AppUser,
           Category,
@@ -77,6 +82,7 @@ import { VoiceMeasurementModule } from './voice-measurement/voice-measurement.mo
     MndModule,
     ContentBuilderModule,
     AnalyticsModule,
+    UsageTrackingModule,
     VoiceMeasurementModule,
   ],
   controllers: [AppController],

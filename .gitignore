@@ -38,3 +38,7 @@ coverage/
 .expo/
 /android
 /app.json
+
+# Mobile release artifacts
+*.apk
+*.aab

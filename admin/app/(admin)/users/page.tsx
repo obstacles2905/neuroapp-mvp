@@ -9,6 +9,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { apiGet } from '@/lib/api/server-client';
+import { formatMinutes } from '@/lib/format-usage';
 import type { AppUserSummary } from '@/lib/types/api';
 import Link from 'next/link';
 
@@ -41,7 +42,9 @@ export default async function UsersPage() {
                   <TableHead>Имя / email</TableHead>
                   <TableHead className="text-right">Завершено</TableHead>
                   <TableHead className="text-right">В процессе</TableHead>
-                  <TableHead>Активность</TableHead>
+                  <TableHead className="text-right">В приложении</TableHead>
+                  <TableHead className="text-right">Упражнения</TableHead>
+                  <TableHead>Последний визит</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
@@ -62,10 +65,18 @@ export default async function UsersPage() {
                     <TableCell className="text-right">
                       <Badge variant="outline">{u.lessonsInProgress}</Badge>
                     </TableCell>
+                    <TableCell className="text-right text-sm text-zinc-700">
+                      {formatMinutes(u.totalAppMinutes)}
+                    </TableCell>
+                    <TableCell className="text-right text-sm text-zinc-700">
+                      {formatMinutes(u.totalExerciseMinutes)}
+                    </TableCell>
                     <TableCell className="text-sm text-zinc-600">
-                      {u.lastActiveAt
-                        ? new Date(u.lastActiveAt).toLocaleString()
-                        : '—'}
+                      {u.lastSeenAt
+                        ? new Date(u.lastSeenAt).toLocaleString()
+                        : u.lastActiveAt
+                          ? new Date(u.lastActiveAt).toLocaleString()
+                          : '—'}
                     </TableCell>
                     <TableCell className="text-right">
                       <Link

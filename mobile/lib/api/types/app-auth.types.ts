@@ -17,7 +17,8 @@ export type AppUserMe = {
   /** Дни подряд (UTC) с хотя бы одним «днём активности» */
   activityStreakCount: number;
   /** YYYY-MM-DD (UTC) последнего засчитанного дня */
-  activityStreakLastUtcDate: string | null;
+  /** ISO 8601 — последнее завершённое упражнение, засчитанное в стрик */
+  activityStreakLastCompletedAt: string | null;
 };
 
 export type AppRegisterRequest = {

@@ -4,15 +4,10 @@ import { Platform, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { AnimatedTabBarIcon } from '@/components/navigation/AnimatedTabBarIcon';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { tabTransitionSpec } from '@/constants/navigation-motion';
 import { useAppTheme } from '@/hooks/useAppTheme';
-
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}): React.JSX.Element {
-  return <FontAwesome size={22} style={{ marginBottom: -2 }} {...props} />;
-}
 
 export default function AppTabsLayout(): React.JSX.Element {
   const t = useAppTheme();
@@ -29,6 +24,9 @@ export default function AppTabsLayout(): React.JSX.Element {
     const tabBarHeight = contentRow + paddingTop + bottomInset;
 
     return {
+      animation: 'fade' as const,
+      transitionSpec: tabTransitionSpec,
+      sceneStyle: { backgroundColor: t.background },
       tabBarActiveTintColor: t.tabIconSelected,
       tabBarInactiveTintColor: t.tabIconDefault,
       tabBarStyle: {
@@ -67,12 +65,19 @@ export default function AppTabsLayout(): React.JSX.Element {
   }, [t, headerShown, insets.bottom]);
 
   return (
-    <Tabs screenOptions={screenOptions}>
+    <Tabs detachInactiveScreens={false} screenOptions={screenOptions}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Учёба',
-          tabBarIcon: ({ color }) => <TabBarIcon name="book" color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarIcon
+              name="book"
+              focused={focused}
+              activeColor={t.tabIconSelected}
+              inactiveColor={t.tabIconDefault}
+            />
+          ),
         }}
       />
       <Tabs.Screen
@@ -80,8 +85,13 @@ export default function AppTabsLayout(): React.JSX.Element {
         options={{
           title: 'Тревожная кнопка',
           tabBarLabel: 'SOS',
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="life-ring" color={color} />
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarIcon
+              name="life-ring"
+              focused={focused}
+              activeColor={t.tabIconSelected}
+              inactiveColor={t.tabIconDefault}
+            />
           ),
         }}
       />
@@ -90,8 +100,13 @@ export default function AppTabsLayout(): React.JSX.Element {
         options={{
           title: 'Биозамеры',
           tabBarLabel: 'Био',
-          tabBarIcon: ({ color }) => (
-            <TabBarIcon name="heartbeat" color={color} />
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarIcon
+              name="heartbeat"
+              focused={focused}
+              activeColor={t.tabIconSelected}
+              inactiveColor={t.tabIconDefault}
+            />
           ),
         }}
       />
@@ -99,14 +114,28 @@ export default function AppTabsLayout(): React.JSX.Element {
         name="jam"
         options={{
           title: 'Джем',
-          tabBarIcon: ({ color }) => <TabBarIcon name="music" color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarIcon
+              name="music"
+              focused={focused}
+              activeColor={t.tabIconSelected}
+              inactiveColor={t.tabIconDefault}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Профиль',
-          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
+          tabBarIcon: ({ focused }) => (
+            <AnimatedTabBarIcon
+              name="user"
+              focused={focused}
+              activeColor={t.tabIconSelected}
+              inactiveColor={t.tabIconDefault}
+            />
+          ),
           headerRight: () => (
             <Link href="/modal" asChild>
               <Pressable>

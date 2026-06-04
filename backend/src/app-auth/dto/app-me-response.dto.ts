@@ -45,7 +45,8 @@ export class AppMeResponseDto {
 
   @ApiProperty({
     nullable: true,
-    description: 'YYYY-MM-DD (UTC) последнего дня, учтённого в стрик',
+    description:
+      'ISO 8601 — момент последнего завершённого упражнения, засчитанного в стрик',
   })
-  activityStreakLastUtcDate: string | null;
+  activityStreakLastCompletedAt: string | null;
 }

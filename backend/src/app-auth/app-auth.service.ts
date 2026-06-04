@@ -10,6 +10,7 @@ import { AuthTokensResponseDto } from '../auth/dto/auth-tokens-response.dto';
 import type { AppJwtPayload } from '../common/interfaces/app-jwt-payload.interface';
 import { buildPrioritizedCategoryIdsFromRanks } from '../common/helpers/build-prioritized-category-ids-from-ranks.helper';
 import { buildPrioritizedSymptomIdsFromRanks } from '../common/helpers/build-prioritized-symptom-ids-from-ranks.helper';
+import { ActivityStreakService } from '../activity-streak/activity-streak.service';
 import { AppRegisterDto } from './dto/app-register.dto';
 import { AppMeResponseDto } from './dto/app-me-response.dto';
 
@@ -20,6 +21,7 @@ export class AppAuthService {
   constructor(
     private readonly appUserRepository: AppUserRepository,
     private readonly jwtService: JwtService,
+    private readonly activityStreakService: ActivityStreakService,
   ) {}
 
   async register(dto: AppRegisterDto): Promise<AuthTokensResponseDto> {
@@ -53,12 +55,14 @@ export class AppAuthService {
   }
 
   async me(userId: string): Promise<AppMeResponseDto> {
+    await this.activityStreakService.persistExpiredStreakIfNeeded(userId);
     const user = await this.appUserRepository.findById(userId);
     if (!user?.email) {
       throw new UnauthorizedException();
     }
     const completed = user.onboardingCompletedAt;
     const skipped = user.onboardingSkippedAt;
+    const lastCompleted = user.activityStreakLastCompletedAt;
     return {
       id: user.id,
       email: user.email,
@@ -72,8 +76,13 @@ export class AppAuthService {
         user.onboardingSymptomRanks,
       ),
       needsOnboarding: completed === null && skipped === null,
-      activityStreakCount: user.activityStreakCount,
-      activityStreakLastUtcDate: user.activityStreakLastUtcDate,
+      activityStreakCount: this.activityStreakService.resolveEffectiveStreak(
+        user.activityStreakCount,
+        lastCompleted,
+      ),
+      activityStreakLastCompletedAt: lastCompleted
+        ? lastCompleted.toISOString()
+        : null,
     };
   }
 

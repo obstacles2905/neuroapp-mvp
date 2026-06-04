@@ -10,6 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 
 import { useNavigationThemeMerged, useAppTheme } from '@/hooks/useAppTheme';
+import { NAV_MOTION } from '@/constants/navigation-motion';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -54,6 +55,8 @@ function RootLayoutNav() {
           <StatusBar style={palette.statusBarStyle} />
           <Stack
           screenOptions={{
+            animation: 'fade',
+            animationDuration: NAV_MOTION.rootFadeMs,
             contentStyle: { backgroundColor: palette.background },
             headerTintColor: palette.tint,
             headerStyle: {
