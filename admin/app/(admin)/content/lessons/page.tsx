@@ -57,7 +57,7 @@ export default async function LessonsPage(props: PageProps) {
             const lessonLabel = lesson.title.ru || lesson.title.en || '—';
             const builderHref = `/content/lessons/${lesson.id}/builder`;
             return (
-              <Card key={lesson.id}>
+              <Card key={lesson.id} className="overflow-visible border-border/80 shadow-sm">
                 <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
                   <Link
                     href={builderHref}

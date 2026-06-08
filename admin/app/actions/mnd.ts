@@ -140,3 +140,10 @@ export async function updateMndExerciseMetaAction(
   revalidatePath(exerciseBuilderPath(exerciseId));
   return updated;
 }
+
+/** Удаляет MND-упражнение. Допустимо только для черновика — проверка на API. */
+export async function deleteMndExerciseAction(exerciseId: string): Promise<void> {
+  await apiDelete(`/mnd/exercises/${exerciseId}`);
+  revalidatePath('/mnd');
+  revalidatePath(exerciseBuilderPath(exerciseId));
+}

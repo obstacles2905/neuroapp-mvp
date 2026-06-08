@@ -2,11 +2,13 @@
 
 import {
   createMndExerciseStepAction,
+  deleteMndExerciseAction,
   deleteMndExerciseStepAction,
   reorderMndExerciseStepsAction,
   updateMndExercisePublishedAction,
   updateMndExerciseStepAction,
 } from '@/app/actions/mnd';
+import { MndExerciseDeleteConfirmDialog } from '@/components/mnd/mnd-exercise-delete-confirm-dialog';
 import { SortableStepList } from '@/components/lesson-builder/sortable-step-list';
 import { StepEditorPanel } from '@/components/lesson-builder/step-editor-panel';
 import { Badge } from '@/components/ui/badge';
@@ -152,7 +154,10 @@ export function MndExerciseBuilder({ initialExercise }: MndExerciseBuilderProps)
   const setSlideOrderInBlock = useLessonBuilderStore((s) => s.setSlideOrderInBlock);
 
   const [publishing, setPublishing] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { feedback, notify } = useFeedbackToast();
+  const isPublished = initialExercise.isPublished;
 
   useEffect(() => {
     setBlocks(initialBlocks);
@@ -182,20 +187,30 @@ export function MndExerciseBuilder({ initialExercise }: MndExerciseBuilderProps)
     }
   }
 
-  async function onTogglePublish() {
+  async function onToggleActive() {
+    if (isPublished) {
+      const ok = window.confirm(
+        'Деактивировать упражнение? Оно скроется из приложения и станет черновиком.',
+      );
+      if (!ok) {
+        return;
+      }
+    }
     setPublishing(true);
     try {
-      await updateMndExercisePublishedAction(initialExercise.id, !initialExercise.isPublished);
+      await updateMndExercisePublishedAction(initialExercise.id, !isPublished);
       router.refresh();
       notify({
         variant: 'success',
-        title: initialExercise.isPublished ? 'Упражнение снято с публикации' : 'Упражнение опубликовано',
-        message: 'Статус упражнения обновлён.',
+        title: isPublished ? 'Упражнение деактивировано' : 'Упражнение активировано',
+        message: isPublished
+          ? 'Упражнение переведено в черновик — его можно удалить.'
+          : 'Упражнение опубликовано и доступно в приложении.',
       });
     } catch (e) {
       notify({
         variant: 'error',
-        title: 'Статус не обновлён',
+        title: isPublished ? 'Не удалось деактивировать' : 'Не удалось активировать',
         message: e instanceof Error ? e.message : 'Попробуйте ещё раз.',
       });
     } finally {
@@ -203,8 +218,38 @@ export function MndExerciseBuilder({ initialExercise }: MndExerciseBuilderProps)
     }
   }
 
+  async function confirmDelete() {
+    setDeleting(true);
+    try {
+      await deleteMndExerciseAction(initialExercise.id);
+      setDeleteOpen(false);
+      notify({
+        variant: 'success',
+        title: 'Упражнение удалено',
+        message: 'Упражнение и все слайды удалены безвозвратно.',
+      });
+      router.push('/mnd');
+      router.refresh();
+    } catch (e) {
+      notify({
+        variant: 'error',
+        title: 'Не удалось удалить',
+        message: e instanceof Error ? e.message : 'Попробуйте позже.',
+      });
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl space-y-8">
+      <MndExerciseDeleteConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        exerciseLabel={exerciseTitle(initialExercise)}
+        isDeleting={deleting}
+        onConfirm={() => void confirmDelete()}
+      />
       {feedback}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
@@ -213,7 +258,7 @@ export function MndExerciseBuilder({ initialExercise }: MndExerciseBuilderProps)
               ← MND Protocol
             </Link>
             <Badge variant={initialExercise.isPublished ? 'default' : 'secondary'}>
-              {initialExercise.isPublished ? 'Опубликовано' : 'Черновик'}
+              {initialExercise.isPublished ? 'Активно' : 'Черновик'}
             </Badge>
             <Badge variant="outline">{directionLabel(initialExercise.direction)}</Badge>
             <Badge variant="outline">L{initialExercise.complexityLevel}</Badge>
@@ -226,13 +271,33 @@ export function MndExerciseBuilder({ initialExercise }: MndExerciseBuilderProps)
             прежний lesson builder, но упражнение остаётся частью MND-стека.
           </p>
         </div>
-        <Button type="button" disabled={publishing} onClick={() => void onTogglePublish()}>
-          {publishing
-            ? 'Обновление…'
-            : initialExercise.isPublished
-              ? 'Снять с публикации'
-              : 'Опубликовать упражнение'}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            disabled={publishing || deleting}
+            onClick={() => void onToggleActive()}
+          >
+            {publishing
+              ? 'Обновление…'
+              : isPublished
+                ? 'Деактивировать'
+                : 'Активировать'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            disabled={isPublished || deleting || publishing}
+            title={
+              isPublished
+                ? 'Сначала деактивируйте упражнение — удалять можно только черновики.'
+                : undefined
+            }
+            onClick={() => setDeleteOpen(true)}
+          >
+            Удалить упражнение
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)] lg:items-start">

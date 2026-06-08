@@ -1,16 +1,15 @@
 'use client';
 
-import { deleteLessonAction } from '@/app/actions/content';
 import {
-  publishLessonAction,
-  unpublishLessonAction,
-} from '@/app/actions/lesson-steps';
-import { LessonDeleteConfirmDialog } from '@/components/content/lesson-delete-confirm-dialog';
+  deleteMndExerciseAction,
+  updateMndExercisePublishedAction,
+} from '@/app/actions/mnd';
+import { MndExerciseDeleteConfirmDialog } from '@/components/mnd/mnd-exercise-delete-confirm-dialog';
 import { AnchoredMenuPanel } from '@/components/ui/anchored-menu-panel';
 import { Button } from '@/components/ui/button';
 import { useFeedbackToast } from '@/components/ui/feedback-toast';
-import { cn } from '@/lib/utils';
 import { MoreVertical } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
@@ -20,29 +19,28 @@ const menuItemClass =
 const menuItemDeleteClass =
   'flex w-full px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10 disabled:opacity-50';
 
-type LessonCardMenuProps = {
-  lessonId: string;
-  lessonLabel: string;
-  status: 'draft' | 'published';
+type MndExerciseRowMenuProps = {
+  exerciseId: string;
+  exerciseLabel: string;
+  isPublished: boolean;
 };
 
-export function LessonCardMenu({
-  lessonId,
-  lessonLabel,
-  status,
-}: LessonCardMenuProps) {
+export function MndExerciseRowMenu({
+  exerciseId,
+  exerciseLabel,
+  isPublished,
+}: MndExerciseRowMenuProps) {
   const router = useRouter();
   const { feedback, notify } = useFeedbackToast();
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [busy, setBusy] = useState(false);
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const isActive = status === 'published';
-  const canDelete = !isActive;
-  const deleteBlockTitle = isActive
-    ? 'Сначала деактивируйте урок — удалять можно только черновики.'
+  const canDelete = !isPublished;
+  const deleteBlockTitle = isPublished
+    ? 'Сначала деактивируйте упражнение — удалять можно только черновики.'
     : undefined;
 
   useEffect(() => {
@@ -51,7 +49,7 @@ export function LessonCardMenu({
     }
     function onDocMouseDown(e: MouseEvent) {
       const target = e.target as Node;
-      if (wrapRef.current?.contains(target) || menuRef.current?.contains(target)) {
+      if (anchorRef.current?.contains(target) || menuRef.current?.contains(target)) {
         return;
       }
       setOpen(false);
@@ -80,13 +78,13 @@ export function LessonCardMenu({
   async function confirmDelete() {
     setDeleting(true);
     try {
-      await deleteLessonAction(lessonId);
+      await deleteMndExerciseAction(exerciseId);
       setDeleteOpen(false);
       router.refresh();
       notify({
         variant: 'success',
-        title: 'Урок удалён',
-        message: 'Урок и все шаги удалены безвозвратно.',
+        title: 'Упражнение удалено',
+        message: 'Упражнение и все слайды удалены безвозвратно.',
       });
     } catch (e) {
       notify({
@@ -100,59 +98,58 @@ export function LessonCardMenu({
   }
 
   async function applyDeactivate() {
-    const result = await unpublishLessonAction(lessonId);
-    setOpen(false);
-    if (!result.ok) {
+    try {
+      await updateMndExercisePublishedAction(exerciseId, false);
+      setOpen(false);
+      router.refresh();
+      notify({
+        variant: 'success',
+        title: 'Упражнение деактивировано',
+        message: 'Упражнение переведено в черновик — его можно удалить.',
+      });
+    } catch (e) {
       notify({
         variant: 'error',
         title: 'Не удалось деактивировать',
-        message: result.message,
+        message: e instanceof Error ? e.message : 'Попробуйте позже.',
       });
-      return;
     }
-    router.refresh();
-    notify({
-      variant: 'success',
-      title: 'Урок деактивирован',
-      message: 'Урок переведён в черновик — его можно удалить.',
-    });
   }
 
   async function applyActivate() {
-    const result = await publishLessonAction(lessonId);
-    setOpen(false);
-    if (!result.ok) {
+    try {
+      await updateMndExercisePublishedAction(exerciseId, true);
+      setOpen(false);
+      router.refresh();
+      notify({
+        variant: 'success',
+        title: 'Упражнение активировано',
+        message: 'Упражнение опубликовано и доступно в приложении.',
+      });
+    } catch (e) {
       notify({
         variant: 'error',
         title: 'Не удалось активировать',
-        message: result.message,
+        message: e instanceof Error ? e.message : 'Попробуйте позже.',
       });
-      return;
     }
-    router.refresh();
-    notify({
-      variant: 'success',
-      title: 'Урок активирован',
-      message: 'Урок опубликован и доступен в приложении.',
-    });
   }
 
   async function toggleActive() {
     if (busy) {
       return;
     }
-    if (isActive) {
+    if (isPublished) {
       const ok = window.confirm(
-        'Деактивировать урок? Он скроется из приложения и станет черновиком.',
+        'Деактивировать упражнение? Оно скроется из приложения и станет черновиком.',
       );
       if (!ok) {
         return;
       }
     }
     setBusy(true);
-    const wasActive = isActive;
     try {
-      if (wasActive) {
+      if (isPublished) {
         await applyDeactivate();
         return;
       }
@@ -164,18 +161,21 @@ export function LessonCardMenu({
 
   return (
     <>
-      <LessonDeleteConfirmDialog
+      <MndExerciseDeleteConfirmDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        lessonLabel={lessonLabel}
+        exerciseLabel={exerciseLabel}
         isDeleting={deleting}
         onConfirm={() => void confirmDelete()}
       />
-      <div
-        ref={wrapRef}
-        className={cn('relative shrink-0', open && 'z-[100]')}
-      >
+      <div ref={anchorRef} className="relative flex flex-wrap items-center gap-2">
         {feedback}
+        <Link
+          href={`/mnd/exercises/${exerciseId}/builder`}
+          className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+        >
+          Конструктор
+        </Link>
         <Button
           type="button"
           variant="ghost"
@@ -184,12 +184,12 @@ export function LessonCardMenu({
           disabled={busy}
           aria-expanded={open}
           aria-haspopup="menu"
-          aria-label="Действия с уроком"
-          onClick={() => setOpen((v) => !v)}
+          aria-label="Действия с упражнением"
+          onClick={() => setOpen((value) => !value)}
         >
           <MoreVertical className="size-4" />
         </Button>
-        <AnchoredMenuPanel open={open} anchorRef={wrapRef} menuRef={menuRef}>
+        <AnchoredMenuPanel open={open} anchorRef={anchorRef} menuRef={menuRef}>
           <button
             type="button"
             role="menuitem"
@@ -197,7 +197,7 @@ export function LessonCardMenu({
             className={menuItemClass}
             onClick={() => void toggleActive()}
           >
-            {isActive ? 'Деактивировать' : 'Активировать'}
+            {isPublished ? 'Деактивировать' : 'Активировать'}
           </button>
           <div className="my-1 h-px bg-border/80" role="separator" />
           <button
@@ -208,7 +208,7 @@ export function LessonCardMenu({
             className={menuItemDeleteClass}
             onClick={openDelete}
           >
-            Удалить урок
+            Удалить упражнение
           </button>
         </AnchoredMenuPanel>
       </div>

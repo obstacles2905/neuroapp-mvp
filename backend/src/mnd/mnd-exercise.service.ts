@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { MndExercise } from '../common/entity/mnd-exercise.entity';
 import { CreateMndExerciseDto } from './dto/create-mnd-exercise.dto';
 import { UpdateMndExerciseDto } from './dto/update-mnd-exercise.dto';
@@ -61,7 +65,15 @@ export class MndExerciseService {
   }
 
   async remove(id: string): Promise<void> {
-    const exercise = await this.findOne(id);
+    const exercise = await this.exerciseRepository.findById(id);
+    if (!exercise) {
+      throw new NotFoundException(`MND exercise ${id} not found`);
+    }
+    if (exercise.isPublished) {
+      throw new BadRequestException(
+        'Нельзя удалить активное упражнение. Сначала деактивируйте его.',
+      );
+    }
     await this.exerciseRepository.remove(exercise);
   }
 

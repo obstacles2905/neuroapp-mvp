@@ -1,8 +1,8 @@
 import {
-  updateMndExercisePublishedAction,
   updateMndStackActiveAction,
   updateMndSymptomPublishedAction,
 } from '@/app/actions/mnd';
+import { MndExerciseRowMenu } from '@/components/mnd/mnd-exercise-row-menu';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -251,10 +251,17 @@ export default async function MndPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {exercises.map((exercise) => (
+                {exercises.map((exercise) => {
+                  const exerciseLabel = text(exercise.title);
+                  return (
                   <TableRow key={exercise.id}>
                     <TableCell className="whitespace-normal font-medium">
-                      {text(exercise.title)}
+                      <Link
+                        href={`/mnd/exercises/${exercise.id}/builder`}
+                        className="text-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
+                      >
+                        {exerciseLabel}
+                      </Link>
                     </TableCell>
                     <TableCell className="whitespace-normal">
                       {stackLabel(exercise.masterStack, exercise.masterStackId)}
@@ -263,32 +270,19 @@ export default async function MndPage() {
                     <TableCell>L{exercise.complexityLevel}</TableCell>
                     <TableCell>
                       <Badge variant={exercise.isPublished ? 'default' : 'secondary'}>
-                        {exercise.isPublished ? 'Published' : 'Draft'}
+                        {exercise.isPublished ? 'Активно' : 'Черновик'}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-2">
-                        <Link
-                          href={`/mnd/exercises/${exercise.id}/builder`}
-                          className="text-xs font-medium text-primary underline-offset-4 hover:underline"
-                        >
-                          Конструктор
-                        </Link>
-                        <form
-                          action={updateMndExercisePublishedAction.bind(
-                            null,
-                            exercise.id,
-                            !exercise.isPublished,
-                          )}
-                        >
-                          <button className="text-xs font-medium text-primary underline-offset-4 hover:underline">
-                            {exercise.isPublished ? 'Снять' : 'Опубликовать'}
-                          </button>
-                        </form>
-                      </div>
+                      <MndExerciseRowMenu
+                        exerciseId={exercise.id}
+                        exerciseLabel={exerciseLabel}
+                        isPublished={exercise.isPublished}
+                      />
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           )}
