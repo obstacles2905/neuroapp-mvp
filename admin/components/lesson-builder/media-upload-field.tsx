@@ -1,6 +1,6 @@
 'use client';
 
-import { uploadLessonMediaAction } from '@/app/actions/lesson-steps';
+import { uploadLessonMedia } from '@/lib/api/upload-media';
 import { Button } from '@/components/ui/button';
 import { useFeedbackToast } from '@/components/ui/feedback-toast';
 import { useRef, useState } from 'react';
@@ -29,10 +29,7 @@ export function MediaUploadField({
     }
     setPending(true);
     try {
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('folder', folder);
-      const result = await uploadLessonMediaAction(fd);
+      const result = await uploadLessonMedia({ file, folder });
       onUploaded(result.s3Key, result.url);
       notify({
         variant: 'success',

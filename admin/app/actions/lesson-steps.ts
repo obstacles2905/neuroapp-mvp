@@ -73,31 +73,6 @@ export async function deleteLessonStepAction(
   revalidatePath(builderPath(lessonId));
 }
 
-export type UploadMediaResult = { s3Key: string; url: string };
-
-export async function uploadLessonMediaAction(
-  formData: FormData,
-): Promise<UploadMediaResult> {
-  const file = formData.get('file');
-  if (!(file instanceof File) || file.size === 0) {
-    throw new Error('Выберите файл');
-  }
-  const folder = String(formData.get('folder') ?? 'lessons').trim() || 'lessons';
-  const body = new FormData();
-  body.append('file', file);
-  const url = `${getApiBase()}/media/upload?folder=${encodeURIComponent(folder)}`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: await authHeader(),
-    body,
-  });
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || `Загрузка не удалась (${response.status})`);
-  }
-  return response.json() as Promise<UploadMediaResult>;
-}
-
 export async function publishLessonAction(
   lessonId: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
