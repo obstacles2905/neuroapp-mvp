@@ -1,4 +1,5 @@
 import { LessonRemoveFromCategory } from '@/components/content/lesson-remove-from-category';
+import { LessonUnpublishButton } from '@/components/content/lesson-unpublish-button';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -73,6 +74,7 @@ export default async function LessonsPage(props: PageProps) {
                   >
                     Конструктор шагов →
                   </Link>
+                  <LessonUnpublishButton lessonId={lesson.id} status={lesson.status} />
                   <LessonRemoveFromCategory
                     lessonId={lesson.id}
                     lessonLabel={lessonLabel}

@@ -104,6 +104,19 @@ export class LessonService {
     return this.findOne(id);
   }
 
+  async unpublish(id: string): Promise<Lesson> {
+    const lesson = await this.lessonRepository.findById(id);
+    if (!lesson) {
+      throw new NotFoundException(`Lesson ${id} not found`);
+    }
+    if (lesson.status === LessonStatus.DRAFT) {
+      return this.findOne(id);
+    }
+    lesson.status = LessonStatus.DRAFT;
+    await this.lessonRepository.save(lesson);
+    return this.findOne(id);
+  }
+
   private async ensureCategoryExists(categoryId: string): Promise<void> {
     const category = await this.categoryRepository.findById(categoryId);
     if (!category) {

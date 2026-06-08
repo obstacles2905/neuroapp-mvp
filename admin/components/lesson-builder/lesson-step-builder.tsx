@@ -4,6 +4,7 @@ import {
   createLessonStepAction,
   publishLessonAction,
   reorderLessonStepsAction,
+  unpublishLessonAction,
 } from '@/app/actions/lesson-steps';
 import { SortableStepList } from '@/components/lesson-builder/sortable-step-list';
 import { StepEditorPanel } from '@/components/lesson-builder/step-editor-panel';
@@ -129,8 +130,9 @@ export function LessonStepBuilder({ lessonId, initialLesson }: LessonStepBuilder
   const setBlocks = useLessonBuilderStore((s) => s.setBlocks);
   const setSlideOrderInBlock = useLessonBuilderStore((s) => s.setSlideOrderInBlock);
 
-  const [publishing, setPublishing] = useState(false);
+  const [statusBusy, setStatusBusy] = useState(false);
   const { feedback, notify } = useFeedbackToast();
+  const isPublished = initialLesson.status === 'published';
 
   useEffect(() => {
     setBlocks(initialLesson.blocks ?? []);
@@ -166,22 +168,26 @@ export function LessonStepBuilder({ lessonId, initialLesson }: LessonStepBuilder
     }
   }
 
-  async function onPublish() {
-    setPublishing(true);
-    const result = await publishLessonAction(lessonId);
-    setPublishing(false);
+  async function onTogglePublish() {
+    setStatusBusy(true);
+    const result = isPublished
+      ? await unpublishLessonAction(lessonId)
+      : await publishLessonAction(lessonId);
+    setStatusBusy(false);
     if (result.ok) {
       router.refresh();
       notify({
         variant: 'success',
-        title: 'Урок опубликован',
-        message: 'Статус урока обновлён. Проверьте контент в приложении.',
+        title: isPublished ? 'Урок снят с публикации' : 'Урок опубликован',
+        message: isPublished
+          ? 'Статус урока обновлён. Урок больше не виден в приложении.'
+          : 'Статус урока обновлён. Проверьте контент в приложении.',
       });
       return;
     }
     notify({
       variant: 'error',
-      title: 'Публикация не удалась',
+      title: isPublished ? 'Не удалось снять с публикацию' : 'Публикация не удалась',
       message: result.message,
     });
   }
@@ -216,10 +222,14 @@ export function LessonStepBuilder({ lessonId, initialLesson }: LessonStepBuilder
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
-            disabled={publishing}
-            onClick={() => void onPublish()}
+            disabled={statusBusy}
+            onClick={() => void onTogglePublish()}
           >
-            {publishing ? 'Публикация…' : 'Опубликовать урок'}
+            {statusBusy
+              ? 'Обновление…'
+              : isPublished
+                ? 'Снять с публикации'
+                : 'Опубликовать урок'}
           </Button>
         </div>
       </div>

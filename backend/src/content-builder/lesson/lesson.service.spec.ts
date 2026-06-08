@@ -144,6 +144,55 @@ describe('LessonService', () => {
     expect(removeMock).toHaveBeenCalledWith(draft);
   });
 
+  it('unpublish sets published lesson back to draft', async () => {
+    expect.assertions(2);
+    const lessonId = '00000000-0000-4000-8000-000000000030';
+    const published = {
+      id: lessonId,
+      status: LessonStatus.PUBLISHED,
+    } as Lesson;
+    const draft = {
+      ...published,
+      status: LessonStatus.DRAFT,
+      blocks: [],
+    } as unknown as Lesson;
+    findByIdMock.mockResolvedValue(published);
+    saveMock.mockResolvedValue(draft);
+    findByIdWithRelationsMock.mockResolvedValue(draft);
+
+    const result = await service.unpublish(lessonId);
+
+    expect(saveMock).toHaveBeenCalledWith(
+      expect.objectContaining({ status: LessonStatus.DRAFT }),
+    );
+    expect(result.status).toBe(LessonStatus.DRAFT);
+  });
+
+  it('unpublish is idempotent for draft lesson', async () => {
+    expect.assertions(2);
+    const lessonId = '00000000-0000-4000-8000-000000000031';
+    const draft = {
+      id: lessonId,
+      status: LessonStatus.DRAFT,
+      blocks: [],
+    } as unknown as Lesson;
+    findByIdMock.mockResolvedValue(draft);
+    findByIdWithRelationsMock.mockResolvedValue(draft);
+
+    const result = await service.unpublish(lessonId);
+
+    expect(saveMock).not.toHaveBeenCalled();
+    expect(result.status).toBe(LessonStatus.DRAFT);
+  });
+
+  it('unpublish throws when lesson not found', async () => {
+    expect.assertions(1);
+    findByIdMock.mockResolvedValue(null);
+    await expect(
+      service.unpublish('00000000-0000-4000-8000-000000000032'),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
   it('publish saves published status when slides are valid', async () => {
     expect.assertions(2);
     const lessonId = '00000000-0000-4000-8000-000000000011';

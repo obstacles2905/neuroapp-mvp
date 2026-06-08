@@ -45,6 +45,13 @@ export class LessonController {
     return this.lessonService.publish(id);
   }
 
+  @Post(':id/unpublish')
+  @ApiOperation({ summary: 'Set lesson status back to draft' })
+  @ApiResponse({ status: HttpStatus.OK })
+  unpublish(@Param('id', ParseUUIDPipe) id: string): Promise<Lesson> {
+    return this.lessonService.unpublish(id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get lesson with steps' })
   findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Lesson> {

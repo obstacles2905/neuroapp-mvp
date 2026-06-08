@@ -73,11 +73,13 @@ export async function deleteLessonStepAction(
   revalidatePath(builderPath(lessonId));
 }
 
-export async function publishLessonAction(
+async function postLessonStatusAction(
   lessonId: string,
+  action: 'publish' | 'unpublish',
+  errorLabel: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   try {
-    const normalized = `/lessons/${lessonId}/publish`;
+    const normalized = `/lessons/${lessonId}/${action}`;
     const apiUrl = `${getApiBase()}${normalized}`;
     const response = await fetch(apiUrl, {
       method: 'POST',
@@ -91,7 +93,19 @@ export async function publishLessonAction(
     revalidatePath('/content/lessons');
     return { ok: true };
   } catch (e) {
-    const message = e instanceof Error ? e.message : 'Ошибка публикации';
+    const message = e instanceof Error ? e.message : errorLabel;
     return { ok: false, message };
   }
+}
+
+export async function publishLessonAction(
+  lessonId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  return postLessonStatusAction(lessonId, 'publish', 'Ошибка публикации');
+}
+
+export async function unpublishLessonAction(
+  lessonId: string,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  return postLessonStatusAction(lessonId, 'unpublish', 'Ошибка снятия с публикации');
 }
