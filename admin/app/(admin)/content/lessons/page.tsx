@@ -1,5 +1,4 @@
-import { LessonRemoveFromCategory } from '@/components/content/lesson-remove-from-category';
-import { LessonUnpublishButton } from '@/components/content/lesson-unpublish-button';
+import { LessonCardMenu } from '@/components/content/lesson-card-menu';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,30 +55,37 @@ export default async function LessonsPage(props: PageProps) {
         ) : (
           lessons.map((lesson) => {
             const lessonLabel = lesson.title.ru || lesson.title.en || '—';
+            const builderHref = `/content/lessons/${lesson.id}/builder`;
             return (
               <Card key={lesson.id}>
                 <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
-                  <div>
-                    <CardTitle className="text-base">{lessonLabel}</CardTitle>
+                  <Link
+                    href={builderHref}
+                    className="group min-w-0 flex-1 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <CardTitle className="text-base transition-colors group-hover:text-primary group-hover:underline group-hover:underline-offset-4">
+                      {lessonLabel}
+                    </CardTitle>
                     <CardDescription className="font-mono text-xs">id: {lesson.id}</CardDescription>
+                  </Link>
+                  <div className="flex shrink-0 items-start gap-1">
+                    <Badge variant={lesson.status === 'published' ? 'default' : 'secondary'}>
+                      {lesson.status === 'published' ? 'Активен' : 'Черновик'}
+                    </Badge>
+                    <LessonCardMenu
+                      lessonId={lesson.id}
+                      lessonLabel={lessonLabel}
+                      status={lesson.status}
+                    />
                   </div>
-                  <Badge variant={lesson.status === 'published' ? 'default' : 'secondary'}>
-                    {lesson.status}
-                  </Badge>
                 </CardHeader>
                 <CardContent className="flex flex-wrap items-center gap-3">
                   <Link
-                    href={`/content/lessons/${lesson.id}/builder`}
+                    href={builderHref}
                     className="text-sm font-medium text-primary underline-offset-4 hover:underline"
                   >
                     Конструктор шагов →
                   </Link>
-                  <LessonUnpublishButton lessonId={lesson.id} status={lesson.status} />
-                  <LessonRemoveFromCategory
-                    lessonId={lesson.id}
-                    lessonLabel={lessonLabel}
-                    status={lesson.status}
-                  />
                 </CardContent>
               </Card>
             );

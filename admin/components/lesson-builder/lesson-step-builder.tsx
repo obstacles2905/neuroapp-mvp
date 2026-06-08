@@ -1,11 +1,13 @@
 'use client';
 
+import { deleteLessonAction } from '@/app/actions/content';
 import {
   createLessonStepAction,
   publishLessonAction,
   reorderLessonStepsAction,
   unpublishLessonAction,
 } from '@/app/actions/lesson-steps';
+import { LessonDeleteConfirmDialog } from '@/components/content/lesson-delete-confirm-dialog';
 import { SortableStepList } from '@/components/lesson-builder/sortable-step-list';
 import { StepEditorPanel } from '@/components/lesson-builder/step-editor-panel';
 import { Badge } from '@/components/ui/badge';
@@ -132,6 +134,8 @@ export function LessonStepBuilder({ lessonId, initialLesson }: LessonStepBuilder
   const setSlideOrderInBlock = useLessonBuilderStore((s) => s.setSlideOrderInBlock);
 
   const [statusBusy, setStatusBusy] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { feedback, notify } = useFeedbackToast();
   const isPublished = initialLesson.status === 'published';
 
@@ -186,7 +190,15 @@ export function LessonStepBuilder({ lessonId, initialLesson }: LessonStepBuilder
     }
   }
 
-  async function onTogglePublish() {
+  async function onToggleActive() {
+    if (isPublished) {
+      const ok = window.confirm(
+        'Деактивировать урок? Он скроется из приложения и станет черновиком.',
+      );
+      if (!ok) {
+        return;
+      }
+    }
     setStatusBusy(true);
     const result = isPublished
       ? await unpublishLessonAction(lessonId)
@@ -196,22 +208,54 @@ export function LessonStepBuilder({ lessonId, initialLesson }: LessonStepBuilder
       router.refresh();
       notify({
         variant: 'success',
-        title: isPublished ? 'Урок снят с публикации' : 'Урок опубликован',
+        title: isPublished ? 'Урок деактивирован' : 'Урок активирован',
         message: isPublished
-          ? 'Статус урока обновлён. Урок больше не виден в приложении.'
-          : 'Статус урока обновлён. Проверьте контент в приложении.',
+          ? 'Урок переведён в черновик — его можно удалить.'
+          : 'Урок опубликован и доступен в приложении.',
       });
       return;
     }
     notify({
       variant: 'error',
-      title: isPublished ? 'Не удалось снять с публикацию' : 'Публикация не удалась',
+      title: isPublished ? 'Не удалось деактивировать' : 'Не удалось активировать',
       message: result.message,
     });
   }
 
+  async function confirmDelete() {
+    setDeleting(true);
+    try {
+      await deleteLessonAction(lessonId);
+      setDeleteOpen(false);
+      notify({
+        variant: 'success',
+        title: 'Урок удалён',
+        message: 'Урок и все шаги удалены безвозвратно.',
+      });
+      router.push(
+        `/content/lessons?categoryId=${encodeURIComponent(initialLesson.categoryId)}`,
+      );
+      router.refresh();
+    } catch (e) {
+      notify({
+        variant: 'error',
+        title: 'Не удалось удалить',
+        message: e instanceof Error ? e.message : 'Попробуйте позже.',
+      });
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-6xl space-y-8">
+      <LessonDeleteConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        lessonLabel={title}
+        isDeleting={deleting}
+        onConfirm={() => void confirmDelete()}
+      />
       {feedback}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="space-y-2">
@@ -223,7 +267,7 @@ export function LessonStepBuilder({ lessonId, initialLesson }: LessonStepBuilder
               ← Уроки
             </Link>
             <Badge variant={initialLesson.status === 'published' ? 'default' : 'secondary'}>
-              {initialLesson.status === 'published' ? 'Опубликован' : 'Черновик'}
+              {initialLesson.status === 'published' ? 'Активен' : 'Черновик'}
             </Badge>
           </div>
           <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground">
@@ -240,14 +284,28 @@ export function LessonStepBuilder({ lessonId, initialLesson }: LessonStepBuilder
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
-            disabled={statusBusy}
-            onClick={() => void onTogglePublish()}
+            disabled={statusBusy || deleting}
+            onClick={() => void onToggleActive()}
           >
             {statusBusy
               ? 'Обновление…'
               : isPublished
-                ? 'Снять с публикации'
-                : 'Опубликовать урок'}
+                ? 'Деактивировать'
+                : 'Активировать'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            disabled={isPublished || deleting || statusBusy}
+            title={
+              isPublished
+                ? 'Сначала деактивируйте урок — удалять можно только черновики.'
+                : undefined
+            }
+            onClick={() => setDeleteOpen(true)}
+          >
+            Удалить урок
           </Button>
         </div>
       </div>

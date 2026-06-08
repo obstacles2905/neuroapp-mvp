@@ -60,11 +60,11 @@ export function LessonDeleteConfirmDialog({
           id={titleId}
           className="font-heading text-lg font-semibold text-destructive"
         >
-          Удалить урок из категории
+          Удалить урок
         </h2>
         <p id={descId} className="mt-1 text-sm text-muted-foreground">
-          Удалить урок «{lessonLabel}»? Урок и все шаги будут удалены безвозвратно. Опубликованные
-          уроки удалять нельзя — сначала переведите урок в черновик.
+          Удалить урок «{lessonLabel}»? Урок и все шаги будут удалены безвозвратно. Активные уроки
+          удалять нельзя — сначала деактивируйте урок.
         </p>
         <div className="mt-6 flex flex-wrap justify-end gap-2">
           <Button

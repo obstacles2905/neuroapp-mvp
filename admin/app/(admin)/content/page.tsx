@@ -27,6 +27,9 @@ export default async function ContentPage() {
           <Link href="/content/new" className={cn(buttonVariants())}>
             Новая категория
           </Link>
+          <Link href="/content/lessons" className={cn(buttonVariants({ variant: 'outline' }))}>
+            Все уроки
+          </Link>
           <Link href="/content/lessons/new" className={cn(buttonVariants({ variant: 'outline' }))}>
             Новый урок
           </Link>

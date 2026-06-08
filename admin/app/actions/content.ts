@@ -95,6 +95,7 @@ export async function deleteCategoryAction(categoryId: string): Promise<void> {
 export async function deleteLessonAction(lessonId: string): Promise<void> {
   await apiDelete(`/lessons/${lessonId}`);
   revalidatePath('/content/lessons');
+  revalidatePath(`/content/lessons/${lessonId}/builder`);
   revalidatePath('/content');
 }
 
