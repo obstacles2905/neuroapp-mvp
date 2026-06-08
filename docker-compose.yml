@@ -42,12 +42,15 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
       S3_BUCKET: ${S3_BUCKET:-neuro-sync-media}
+    volumes:
+      - ./docker/minio-cors.json:/cors.json:ro
     entrypoint: >
       /bin/sh -c "
       echo 'Waiting for MinIO...';
       until mc alias set local http://minio:9000 \"$$MINIO_ROOT_USER\" \"$$MINIO_ROOT_PASSWORD\" 2>/dev/null; do sleep 1; done;
       mc mb --ignore-existing local/$$S3_BUCKET;
       mc anonymous set download local/$$S3_BUCKET;
+      mc cors set local/$$S3_BUCKET /cors.json || echo 'MinIO CORS setup skipped';
       echo Bucket ready: $$S3_BUCKET;
       exit 0;
       "

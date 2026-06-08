@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Delete,
   HttpCode,
@@ -20,6 +21,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { DEFAULT_MEDIA_MAX_FILE_BYTES } from '../common/constants/default-media-upload.constant';
+import { PresignMediaUploadDto } from './dto/presign-media-upload.dto';
+import { PresignMediaUploadResponseDto } from './dto/presign-media-upload-response.dto';
 import { UploadMediaResponseDto } from './dto/upload-media-response.dto';
 import { S3Service } from './s3.service';
 
@@ -28,6 +31,21 @@ import { S3Service } from './s3.service';
 @Controller('admin/media')
 export class MediaController {
   constructor(private readonly s3Service: S3Service) {}
+
+  @Post('presign')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Create a presigned URL for direct browser upload to object storage',
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    type: PresignMediaUploadResponseDto,
+  })
+  async presign(
+    @Body() body: PresignMediaUploadDto,
+  ): Promise<PresignMediaUploadResponseDto> {
+    return this.s3Service.createPresignedUpload(body);
+  }
 
   @Post('upload')
   @HttpCode(HttpStatus.CREATED)

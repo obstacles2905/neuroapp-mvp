@@ -1,0 +1,1 @@
+export const MEDIA_PRESIGN_EXPIRES_SECONDS = 3600;
