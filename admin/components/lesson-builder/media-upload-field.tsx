@@ -1,15 +1,22 @@
 'use client';
 
-import { uploadLessonMedia } from '@/lib/api/upload-media';
+import { enqueueMediaUpload } from '@/lib/media/enqueue-media-upload';
+import type { UploadMediaResult } from '@/lib/api/upload-media';
+import { useMediaUploadStore } from '@/lib/stores/media-upload-store';
 import { Button } from '@/components/ui/button';
-import { useFeedbackToast } from '@/components/ui/feedback-toast';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
+
+export type MediaUploadContext = {
+  returnPath: string;
+  onPersist?: (result: UploadMediaResult) => Promise<void>;
+};
 
 type MediaUploadFieldProps = {
   folder: 'videos' | 'animations' | 'lessons';
   label: string;
   onUploaded: (s3Key: string, url: string) => void;
   disabled?: boolean;
+  uploadContext?: MediaUploadContext;
 };
 
 export function MediaUploadField({
@@ -17,60 +24,64 @@ export function MediaUploadField({
   label,
   onUploaded,
   disabled,
+  uploadContext,
 }: MediaUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [pending, setPending] = useState(false);
-  const { feedback, notify } = useFeedbackToast();
+  const activeUploads = useMediaUploadStore((state) =>
+    state.jobs.filter((job) => job.status === 'uploading').length,
+  );
 
-  async function onFile(files: FileList | null) {
+  function onFile(files: FileList | null) {
     const file = files?.[0];
     if (!file) {
       return;
     }
-    setPending(true);
-    try {
-      const result = await uploadLessonMedia({ file, folder });
-      onUploaded(result.s3Key, result.url);
-      notify({
-        variant: 'success',
-        title: 'Файл загружен',
-        message: `Ключ в хранилище:\n${result.s3Key}`,
-      });
-    } catch (e) {
-      notify({
-        variant: 'error',
-        title: 'Загрузка не удалась',
-        message: e instanceof Error ? e.message : 'Попробуйте другой файл или позже.',
-      });
-    } finally {
-      setPending(false);
-      if (inputRef.current) {
-        inputRef.current.value = '';
-      }
+
+    if (!uploadContext) {
+      return;
+    }
+
+    enqueueMediaUpload({
+      file,
+      folder,
+      returnPath: uploadContext.returnPath,
+      onLocalSuccess: (result) => onUploaded(result.s3Key, result.url),
+      onPersist: uploadContext.onPersist,
+    });
+
+    if (inputRef.current) {
+      inputRef.current.value = '';
     }
   }
 
+  const queueLabel =
+    activeUploads > 0 ? `${label} (${activeUploads} в фоне)` : label;
+
   return (
     <div className="space-y-2">
-      {feedback}
       <input
         ref={inputRef}
         type="file"
         accept="video/*,image/*,.json,.lottie"
         className="sr-only"
-        disabled={disabled || pending}
-        onChange={(e) => void onFile(e.target.files)}
+        disabled={disabled}
+        onChange={(e) => onFile(e.target.files)}
       />
       <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
           variant="outline"
           size="sm"
-          disabled={disabled || pending}
+          disabled={disabled}
           onClick={() => inputRef.current?.click()}
         >
-          {pending ? 'Загрузка…' : label}
+          {queueLabel}
         </Button>
+        {activeUploads > 0 ? (
+          <span className="text-xs text-muted-foreground">
+            Загрузка идёт в фоне — можно уйти со страницы.
+          </span>
+        ) : null}
       </div>
     </div>
   );

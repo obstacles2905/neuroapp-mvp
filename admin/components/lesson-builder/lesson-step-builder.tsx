@@ -24,7 +24,7 @@ import {
   LESSON_STEP_TYPES,
 } from '@/lib/types/lesson-step';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 type LessonStepBuilderProps = {
@@ -123,6 +123,7 @@ function BlockSection({
 
 export function LessonStepBuilder({ lessonId, initialLesson }: LessonStepBuilderProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const blocks = useLessonBuilderStore((s) => s.blocks);
   const selectedBlockId = useLessonBuilderStore((s) => s.selectedBlockId);
   const selectedStepId = useLessonBuilderStore((s) => s.selectedStepId);
@@ -137,6 +138,23 @@ export function LessonStepBuilder({ lessonId, initialLesson }: LessonStepBuilder
   useEffect(() => {
     setBlocks(initialLesson.blocks ?? []);
   }, [initialLesson.blocks, setBlocks]);
+
+  useEffect(() => {
+    const blockId = searchParams.get('block');
+    const stepId = searchParams.get('step');
+    if (!blockId || !stepId) {
+      return;
+    }
+    const block = blocks.find((item) => item.id === blockId);
+    if (!block) {
+      return;
+    }
+    const stepExists = block.slides.some((slide) => slide.id === stepId);
+    if (!stepExists) {
+      return;
+    }
+    selectSlide(blockId, stepId);
+  }, [blocks, searchParams, selectSlide]);
 
   const selectedStep =
     blocks

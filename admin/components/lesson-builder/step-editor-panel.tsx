@@ -5,7 +5,10 @@ import {
   updateLessonStepAction,
 } from '@/app/actions/lesson-steps';
 import { LocaleTabBar } from '@/components/lesson-builder/locale-tab-bar';
-import { MediaUploadField } from '@/components/lesson-builder/media-upload-field';
+import {
+  MediaUploadField,
+  type MediaUploadContext,
+} from '@/components/lesson-builder/media-upload-field';
 import { Button } from '@/components/ui/button';
 import { useFeedbackToast } from '@/components/ui/feedback-toast';
 import {
@@ -201,12 +204,26 @@ function TheoryFields({
   );
 }
 
+function buildLessonBuilderReturnPath(
+  lessonId: string,
+  blockId: string,
+  stepId: string,
+): string {
+  const params = new URLSearchParams({
+    block: blockId,
+    step: stepId,
+  });
+  return `/content/lessons/${lessonId}/builder?${params.toString()}`;
+}
+
 function VideoFields({
   content,
   onChange,
+  uploadContext,
 }: {
   content: VideoStepContent;
   onChange: (c: VideoStepContent) => void;
+  uploadContext?: MediaUploadContext;
 }) {
   return (
     <div className="space-y-4">
@@ -225,6 +242,7 @@ function VideoFields({
       <MediaUploadField
         folder="videos"
         label="Загрузить видео"
+        uploadContext={uploadContext}
         onUploaded={(s3Key) => onChange({ ...content, s3_key: s3Key })}
       />
       <div className="space-y-2">
@@ -242,9 +260,11 @@ function VideoFields({
 function AnimationFields({
   content,
   onChange,
+  uploadContext,
 }: {
   content: AnimationStepContent;
   onChange: (c: AnimationStepContent) => void;
+  uploadContext?: MediaUploadContext;
 }) {
   return (
     <div className="space-y-4">
@@ -263,6 +283,7 @@ function AnimationFields({
       <MediaUploadField
         folder="animations"
         label="Загрузить файл анимации / видео"
+        uploadContext={uploadContext}
         onUploaded={(s3Key) => onChange({ ...content, s3_key: s3Key })}
       />
       <div className="space-y-2">
@@ -410,6 +431,46 @@ export function StepEditorPanel({
     return !deepEqual(draft, savedBaseline);
   }, [draft, savedBaseline]);
 
+  const mediaUploadContext = useMemo((): MediaUploadContext | undefined => {
+    if (!step || !blockId) {
+      return undefined;
+    }
+    return {
+      returnPath: buildLessonBuilderReturnPath(lessonId, blockId, step.id),
+      onPersist: async (result) => {
+        const blocks = useLessonBuilderStore.getState().blocks;
+        const block = blocks.find((item) => item.id === blockId);
+        const current = block?.slides.find((slide) => slide.id === step.id);
+        const baseContent = current?.content ?? step.content;
+
+        let nextContent: LessonStepContent;
+        if (step.type === 'video') {
+          nextContent = {
+            ...(baseContent as VideoStepContent),
+            s3_key: result.s3Key,
+          };
+        } else if (step.type === 'animation') {
+          nextContent = {
+            ...(baseContent as AnimationStepContent),
+            s3_key: result.s3Key,
+          };
+        } else {
+          return;
+        }
+
+        const updated = await updateStep(lessonId, blockId, step.id, {
+          type: step.type,
+          content: nextContent,
+        });
+        const normalized = normalizeDraftForEditor(updated.type, updated.content);
+        setDraft(normalized);
+        setSavedBaseline(normalized);
+        upsertSlide(blockId, updated);
+        router.refresh();
+      },
+    };
+  }, [blockId, lessonId, router, step, updateStep, upsertSlide]);
+
   async function save() {
     if (!step || draft === null || !blockId) {
       return;
@@ -507,12 +568,14 @@ export function StepEditorPanel({
           <VideoFields
             content={draft as VideoStepContent}
             onChange={(c) => setDraft(c)}
+            uploadContext={mediaUploadContext}
           />
         ) : null}
         {step.type === 'animation' ? (
           <AnimationFields
             content={draft as AnimationStepContent}
             onChange={(c) => setDraft(c)}
+            uploadContext={mediaUploadContext}
           />
         ) : null}
         {step.type === 'practice' ? (

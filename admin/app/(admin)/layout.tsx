@@ -1,4 +1,5 @@
 import { AdminSidebar } from '@/components/admin-sidebar';
+import { MediaUploadToastHost } from '@/components/media-upload-toast-host';
 import { getMe } from '@/lib/auth/session';
 
 export default async function AdminSectionLayout({
@@ -14,6 +15,7 @@ export default async function AdminSectionLayout({
       <div className="admin-main-surface flex min-h-screen flex-1 flex-col">
         <main className="flex-1 p-6 lg:p-10">{children}</main>
       </div>
+      <MediaUploadToastHost />
     </div>
   );
 }
