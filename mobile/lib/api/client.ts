@@ -42,14 +42,15 @@ function buildUrl(path: string): string {
 export async function apiRequest<T>(path: string, init: ApiRequestOptions = {}): Promise<T> {
   const { json, headers: initHeaders, ...rest } = init;
   const headers = new Headers(initHeaders);
+  const tokenForRequest = accessToken;
   if (!headers.has('Accept')) {
     headers.set('Accept', 'application/json');
   }
   if (json !== undefined) {
     headers.set('Content-Type', 'application/json');
   }
-  if (accessToken) {
-    headers.set('Authorization', `Bearer ${accessToken}`);
+  if (tokenForRequest) {
+    headers.set('Authorization', `Bearer ${tokenForRequest}`);
   }
 
   const res = await fetch(buildUrl(path), {
@@ -58,7 +59,7 @@ export async function apiRequest<T>(path: string, init: ApiRequestOptions = {}):
     body: json !== undefined ? JSON.stringify(json) : rest.body,
   });
 
-  if (res.status === 401) {
+  if (res.status === 401 && tokenForRequest) {
     onUnauthorized?.();
   }
 

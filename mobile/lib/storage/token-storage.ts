@@ -31,6 +31,14 @@ export async function getStoredToken(key: string): Promise<string | null> {
   return SecureStore.getItemAsync(key);
 }
 
+/** Синхронное чтение токена на web — до первых useEffect дочерних экранов. */
+export function getStoredTokenSync(key: string): string | null {
+  if (Platform.OS === 'web') {
+    return webGet(key);
+  }
+  return null;
+}
+
 export async function setStoredToken(key: string, value: string): Promise<void> {
   if (Platform.OS === 'web') {
     webSet(key, value);

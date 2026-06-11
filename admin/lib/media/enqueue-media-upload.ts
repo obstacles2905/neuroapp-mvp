@@ -53,14 +53,14 @@ async function runMediaUpload(
     });
 
     input.onLocalSuccess?.(result);
-    if (input.onPersist) {
-      await input.onPersist(result);
-    }
-
     store.updateJob(jobId, {
       status: 'success',
       result,
     });
+
+    if (input.onPersist) {
+      await input.onPersist(result);
+    }
     const doneTitle =
       input.folder === 'videos' ? 'Видео загружено' : 'Файл загружен';
     store.pushToast({

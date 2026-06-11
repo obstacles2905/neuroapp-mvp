@@ -16,5 +16,8 @@ export function createPresignS3ClientFromConfig(
       secretAccessKey: configService.getOrThrow<string>(S3_ENV_KEYS.SECRET_KEY),
     },
     forcePathStyle,
+    // Browser PUT must not include SDK checksum headers absent from presign.headers.
+    requestChecksumCalculation: 'WHEN_REQUIRED',
+    responseChecksumValidation: 'WHEN_REQUIRED',
   });
 }

@@ -47,7 +47,7 @@ function stepsWithFallback(detail: AppMndExerciseDetail): LessonStepInBlock[] {
 }
 
 export default function MndExercisePlayerScreen(): React.JSX.Element {
-  const { refreshUser } = useAuth();
+  const { refreshUser, isReady, isLoggedIn } = useAuth();
   const { id, title: titleParam, fromJam } = useLocalSearchParams<{
     id: string;
     title?: string;
@@ -90,11 +90,19 @@ export default function MndExercisePlayerScreen(): React.JSX.Element {
   }, [id]);
 
   useEffect(() => {
+    if (!isReady) {
+      return;
+    }
+    if (!isLoggedIn) {
+      setLoading(false);
+      router.replace('/(auth)/login');
+      return;
+    }
     if (id) {
       setCompletionModalVisible(false);
       void load();
     }
-  }, [id, load]);
+  }, [id, isLoggedIn, isReady, load, router]);
 
   const steps = useMemo(
     () => (exercise == null ? [] : stepsWithFallback(exercise)),

@@ -23,7 +23,9 @@ npx expo start
 
 На Windows вместо `cp` используй `copy .env.example .env`. Либо из корня: `npm run dev:mobile` (после настройки `mobile/.env`).
 
-- В `EXPO_PUBLIC_API_URL` укажи URL Nest-бэка (`../backend`). Для **Android-эмулятора** `localhost` не указывает на твой ПК: используй `http://10.0.2.2:3000` (или `adb reverse` / LAN IP).
+- По умолчанию `mobile/.env` указывает на **локальный** Nest: `http://127.0.0.1:3000` (тот же Postgres, что и админка на `:3001`).
+- Для **Android-эмулятора** `localhost` не указывает на ПК: `http://10.0.2.2:3000` (или `adb reverse` / LAN IP).
+- **Staging (Railway):** скопируй `mobile/.env.staging.example` → `mobile/.env` и перезапусти Expo. Шаблон сохраняет URL `https://backend-production-2829.up.railway.app`.
 - `EXPO_PUBLIC_DEV_BYPASS_AUTH=true` — пропустить экран входа (только dev).
 
 ## Скрипты

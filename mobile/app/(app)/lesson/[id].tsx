@@ -38,7 +38,7 @@ function formatLessonCompletedLine(iso: string | null): string | null {
 }
 
 export default function LessonPlayerScreen(): React.JSX.Element {
-  const { refreshUser } = useAuth();
+  const { refreshUser, isReady, isLoggedIn } = useAuth();
   const { id, title: titleParam } = useLocalSearchParams<{
     id: string;
     title?: string;
@@ -90,11 +90,19 @@ export default function LessonPlayerScreen(): React.JSX.Element {
   }, [id]);
 
   useEffect(() => {
+    if (!isReady) {
+      return;
+    }
+    if (!isLoggedIn) {
+      setLoading(false);
+      router.replace('/(auth)/login');
+      return;
+    }
     if (id) {
       setCompletionModalVisible(false);
       void load();
     }
-  }, [id, load]);
+  }, [id, isLoggedIn, isReady, load, router]);
 
   const steps = useMemo(
     () => (lesson == null ? [] : flattenLessonBlocks(lesson.blocks)),

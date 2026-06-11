@@ -5,6 +5,7 @@ import type { AppUserMe } from '@/lib/api/types/app-auth.types';
 import {
   deleteStoredToken,
   getStoredToken,
+  getStoredTokenSync,
   setStoredToken,
 } from '@/lib/storage/token-storage';
 import React, {
@@ -13,6 +14,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -55,6 +57,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
   const [isLoggedIn, setIsLoggedIn] = useState(shouldBypassAuth);
   const [isReady, setIsReady] = useState(shouldBypassAuth);
   const [user, setUser] = useState<AppUserMe | null>(null);
+  const hydratedTokenRef = useRef(false);
+
+  if (!hydratedTokenRef.current && !shouldBypassAuth) {
+    hydratedTokenRef.current = true;
+    const token = getStoredTokenSync(SECURE_ACCESS_TOKEN_KEY);
+    if (token) {
+      setAccessToken(token);
+    }
+  }
 
   useEffect(() => {
     setOnUnauthorized(() => {
