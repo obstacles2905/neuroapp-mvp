@@ -159,31 +159,24 @@ export default function OnboardingScreen(): React.JSX.Element {
     try {
       await submitOnboarding(rankedIds);
       await refreshUser();
-      setArchitectLoading(true);
-      setPhase('architect_word');
-      const presentation = await fetchArchitectWordPresentation();
-      setArchitectSlides(presentation.slides);
-      if (presentation.skip) {
-        setPhase('value_proposition');
-      }
+      setPhase('value_proposition');
     } catch (e) {
       const msg =
         e instanceof ApiError ? e.message : 'Не удалось сохранить. Повторите.';
       setError(msg);
       setPhase('symptoms_rank');
     } finally {
-      setArchitectLoading(false);
       setSubmitting(false);
     }
   }
 
-  async function onFinishArchitectWord(): Promise<void> {
+  const finishArchitectWordToApp = useCallback(async (): Promise<void> => {
     setError(null);
     setSubmitting(true);
     try {
       await completeArchitectWord();
       await refreshUser();
-      setPhase('value_proposition');
+      router.replace('/(app)/(tabs)' as Href);
     } catch (e) {
       const msg =
         e instanceof ApiError ? e.message : 'Не удалось завершить. Повторите.';
@@ -191,7 +184,31 @@ export default function OnboardingScreen(): React.JSX.Element {
     } finally {
       setSubmitting(false);
     }
-  }
+  }, [refreshUser, router]);
+
+  const beginArchitectWordFlow = useCallback(async (): Promise<void> => {
+    setError(null);
+    setSubmitting(true);
+    setArchitectLoading(true);
+    try {
+      const presentation = await fetchArchitectWordPresentation();
+      if (presentation.skip) {
+        await finishArchitectWordToApp();
+        return;
+      }
+      setArchitectSlides(presentation.slides);
+      setPhase('architect_word');
+    } catch (e) {
+      const msg =
+        e instanceof ApiError
+          ? e.message
+          : 'Не удалось загрузить видео. Повторите.';
+      setError(msg);
+    } finally {
+      setArchitectLoading(false);
+      setSubmitting(false);
+    }
+  }, [finishArchitectWordToApp]);
 
   async function onSkipFullOnboarding(): Promise<void> {
     setError(null);
@@ -210,7 +227,7 @@ export default function OnboardingScreen(): React.JSX.Element {
   }
 
   function finishOnboardingToApp(): void {
-    router.replace('/(app)/(tabs)' as Href);
+    void beginArchitectWordFlow();
   }
 
   if (loading && phase.startsWith('symptoms')) {
@@ -347,8 +364,8 @@ export default function OnboardingScreen(): React.JSX.Element {
         loading={architectLoading}
         submitting={submitting}
         error={error}
-        onFinish={onFinishArchitectWord}
-        finishLabel="Дальше"
+        onFinish={finishArchitectWordToApp}
+        finishLabel="Продолжить в приложение"
       />
     );
   }
@@ -385,11 +402,20 @@ export default function OnboardingScreen(): React.JSX.Element {
             {onboardingSubscriptionStubCopy.ctaPaid}
           </Text>
         </Pressable>
-        <Pressable style={styles.primary} onPress={finishOnboardingToApp}>
-          <Text style={styles.primaryText}>
-            {onboardingSubscriptionStubCopy.ctaFree}
-          </Text>
+        <Pressable
+          style={[styles.primary, submitting ? styles.primaryDisabled : null]}
+          onPress={finishOnboardingToApp}
+          disabled={submitting}
+        >
+          {submitting ? (
+            <ActivityIndicator color={t.tintForeground} />
+          ) : (
+            <Text style={styles.primaryText}>
+              {onboardingSubscriptionStubCopy.ctaFree}
+            </Text>
+          )}
         </Pressable>
+        {error ? <Text style={styles.err}>{error}</Text> : null}
       </ScrollView>
     );
   }
