@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Pause, Play } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -82,11 +82,17 @@ export function AdminVideoPreview({
         <p className="text-sm text-muted-foreground">
           Не удалось воспроизвести превью в браузере.
         </p>
-        <Button asChild variant="outline" size="sm" className="mt-3">
-          <a href={url} target="_blank" rel="noreferrer">
-            Открыть файл
-          </a>
-        </Button>
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer"
+          className={cn(
+            buttonVariants({ variant: 'outline', size: 'sm' }),
+            'mt-3 inline-flex',
+          )}
+        >
+          Открыть файл
+        </a>
       </div>
     );
   }

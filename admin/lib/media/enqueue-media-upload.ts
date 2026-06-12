@@ -65,7 +65,9 @@ async function runMediaUpload(
       ? 'Файл уже в S3'
       : input.folder === 'videos'
         ? 'Видео загружено'
-        : 'Файл загружен';
+        : input.folder === 'architect-word'
+          ? 'Видео «Слово Архитектора» загружено'
+          : 'Файл загружен';
     const doneMessage = result.deduplicated
       ? `${input.file.name} — использован существующий объект в хранилище.`
       : `${input.file.name} сохранён в S3. Нажмите, чтобы вернуться к уроку.`;
