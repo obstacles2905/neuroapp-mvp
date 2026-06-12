@@ -7,7 +7,7 @@ import { LessonStatus } from '../common/enums/lesson-status.enum';
 import { UserLessonProgressStatus } from '../common/enums/user-lesson-progress-status.enum';
 import { CategoryRepository } from '../content-builder/category/category.repository';
 import { LessonRepository } from '../content-builder/lesson/lesson.repository';
-import { S3Service } from '../media/s3.service';
+import { AppMediaService } from '../media/app-media.service';
 import { ActivityStreakService } from '../activity-streak/activity-streak.service';
 import { AppLessonProgressRepository } from './app-lesson-progress.repository';
 import { AppLessonsService } from './app-lessons.service';
@@ -30,8 +30,8 @@ describe('AppLessonsService', () => {
     create: jest.fn(),
     save: jest.fn(),
   };
-  const mockS3 = {
-    getFileUrl: jest.fn((k: string) => `https://ex/${k}`),
+  const mockAppMedia = {
+    buildStreamUrl: jest.fn((k: string) => `https://ex/api/app/media/stream?key=${k}`),
   };
   const mockStreak = {
     onQualifyingActivityDay: jest.fn().mockResolvedValue(undefined),
@@ -47,7 +47,7 @@ describe('AppLessonsService', () => {
         { provide: CategoryRepository, useValue: mockCategoryRepo },
         { provide: LessonRepository, useValue: mockLessonRepo },
         { provide: AppLessonProgressRepository, useValue: mockProgressRepo },
-        { provide: S3Service, useValue: mockS3 },
+        { provide: AppMediaService, useValue: mockAppMedia },
         { provide: ActivityStreakService, useValue: mockStreak },
       ],
     }).compile();

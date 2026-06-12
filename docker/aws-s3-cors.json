@@ -1,0 +1,19 @@
+[
+  {
+    "AllowedOrigins": [
+      "http://localhost:8081",
+      "http://127.0.0.1:8081",
+      "https://*.vercel.app"
+    ],
+    "AllowedMethods": ["GET", "HEAD"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": [
+      "Accept-Ranges",
+      "Content-Length",
+      "Content-Range",
+      "Content-Type",
+      "ETag"
+    ],
+    "MaxAgeSeconds": 3600
+  }
+]

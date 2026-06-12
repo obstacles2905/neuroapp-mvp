@@ -7,13 +7,16 @@ import {
 import { createPresignS3ClientFromConfig } from '../common/helpers/create-presign-s3-client.helper';
 import { createS3ClientFromConfig } from '../common/helpers/create-s3-client.helper';
 import { MediaController } from './media.controller';
+import { AppMediaController } from './app-media.controller';
+import { AppMediaService } from './app-media.service';
 import { S3Service } from './s3.service';
 
 @Module({
   imports: [ConfigModule],
-  controllers: [MediaController],
+  controllers: [MediaController, AppMediaController],
   providers: [
     S3Service,
+    AppMediaService,
     {
       provide: S3_CLIENT,
       inject: [ConfigService],
@@ -27,6 +30,6 @@ import { S3Service } from './s3.service';
         createPresignS3ClientFromConfig(configService),
     },
   ],
-  exports: [S3Service],
+  exports: [S3Service, AppMediaService],
 })
 export class MediaModule {}

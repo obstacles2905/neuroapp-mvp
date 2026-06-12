@@ -7,7 +7,7 @@ import type { AnimationStepContent } from '../common/interfaces/animation-step-c
 import type { LessonStepContent } from '../common/interfaces/lesson-step-content.interface';
 import type { VideoStepContent } from '../common/interfaces/video-step-content.interface';
 import { utcDateKeyFromDate } from '../common/helpers/utc-date-key.helper';
-import { S3Service } from '../media/s3.service';
+import { AppMediaService } from '../media/app-media.service';
 import { AppUserMndExerciseCompletionRepository } from '../analytics/app-user-mnd-exercise-completion.repository';
 import { AppUserMndJamExerciseDayCompletionRepository } from '../analytics/app-user-mnd-jam-exercise-day-completion.repository';
 import { ActivityStreakService } from '../activity-streak/activity-streak.service';
@@ -20,7 +20,7 @@ import { AppLessonStepResponseDto } from './dto/app-lesson-step-response.dto';
 export class AppMndExerciseService {
   constructor(
     private readonly mndExerciseService: MndExerciseService,
-    private readonly s3Service: S3Service,
+    private readonly appMediaService: AppMediaService,
     private readonly activityStreakService: ActivityStreakService,
     private readonly mndExerciseCompletionRepository: AppUserMndExerciseCompletionRepository,
     private readonly jamDayCompletionRepository: AppUserMndJamExerciseDayCompletionRepository,
@@ -92,11 +92,11 @@ export class AppMndExerciseService {
     const c = { ...(content as unknown as Record<string, unknown>) };
     if (type === LessonStepType.VIDEO) {
       const v = content as VideoStepContent;
-      c.mediaUrl = this.s3Service.getFileUrl(v.s3_key);
+      c.mediaUrl = this.appMediaService.buildStreamUrl(v.s3_key);
     }
     if (type === LessonStepType.ANIMATION) {
       const a = content as AnimationStepContent;
-      c.mediaUrl = this.s3Service.getFileUrl(a.s3_key);
+      c.mediaUrl = this.appMediaService.buildStreamUrl(a.s3_key);
     }
     return c;
   }

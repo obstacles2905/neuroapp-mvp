@@ -1,5 +1,6 @@
 import {
   DeleteObjectCommand,
+  GetObjectCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -22,12 +23,21 @@ import { buildMediaObjectKey } from '../common/helpers/build-media-object-key.he
 import { resolveS3PublicUrl } from '../common/helpers/resolve-s3-public-url.helper';
 import type { MediaPresignResult } from '../common/interfaces/media-presign-result.interface';
 import type { MediaUploadResult } from '../common/interfaces/media-upload-result.interface';
+import type { Readable } from 'stream';
 
 type PresignUploadInput = {
   originalName: string;
   contentType: string;
   fileSize: number;
   folder?: string;
+};
+
+type S3ObjectStreamResult = {
+  body: Readable;
+  contentType: string;
+  contentLength: number | undefined;
+  contentRange: string | undefined;
+  statusCode: 200 | 206;
 };
 
 @Injectable()
@@ -44,6 +54,30 @@ export class S3Service {
 
   getFileUrl(objectKey: string): string {
     return resolveS3PublicUrl(this.configService, objectKey);
+  }
+
+  async getObjectStream(
+    objectKey: string,
+    rangeHeader?: string,
+  ): Promise<S3ObjectStreamResult> {
+    const response = await this.s3Client.send(
+      new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: objectKey,
+        Range: rangeHeader,
+      }),
+    );
+    if (response.Body == null) {
+      throw new Error('S3 object body is empty');
+    }
+    const statusCode = rangeHeader != null && rangeHeader.length > 0 ? 206 : 200;
+    return {
+      body: response.Body as Readable,
+      contentType: response.ContentType ?? 'application/octet-stream',
+      contentLength: response.ContentLength,
+      contentRange: response.ContentRange,
+      statusCode,
+    };
   }
 
   async uploadFile(

@@ -9,7 +9,7 @@ import { UserLessonProgressStatus } from '../common/enums/user-lesson-progress-s
 import type { AnimationStepContent } from '../common/interfaces/animation-step-content.interface';
 import type { LessonStepContent } from '../common/interfaces/lesson-step-content.interface';
 import type { VideoStepContent } from '../common/interfaces/video-step-content.interface';
-import { S3Service } from '../media/s3.service';
+import { AppMediaService } from '../media/app-media.service';
 import { CategoryRepository } from '../content-builder/category/category.repository';
 import { LessonRepository } from '../content-builder/lesson/lesson.repository';
 import { ActivityStreakService } from '../activity-streak/activity-streak.service';
@@ -27,7 +27,7 @@ export class AppLessonsService {
     private readonly categoryRepository: CategoryRepository,
     private readonly lessonRepository: LessonRepository,
     private readonly appLessonProgressRepository: AppLessonProgressRepository,
-    private readonly s3Service: S3Service,
+    private readonly appMediaService: AppMediaService,
     private readonly activityStreakService: ActivityStreakService,
   ) {}
 
@@ -172,11 +172,11 @@ export class AppLessonsService {
     const c = { ...(content as unknown as Record<string, unknown>) };
     if (type === LessonStepType.VIDEO) {
       const v = content as VideoStepContent;
-      c.mediaUrl = this.s3Service.getFileUrl(v.s3_key);
+      c.mediaUrl = this.appMediaService.buildStreamUrl(v.s3_key);
     }
     if (type === LessonStepType.ANIMATION) {
       const a = content as AnimationStepContent;
-      c.mediaUrl = this.s3Service.getFileUrl(a.s3_key);
+      c.mediaUrl = this.appMediaService.buildStreamUrl(a.s3_key);
     }
     return c;
   }
