@@ -286,18 +286,29 @@ export default function ProfileScreen(): React.JSX.Element {
         </Pressable>
       ) : null}
       {isLoggedIn && user?.onboardingCompletedAt != null ? (
-        <Pressable
-          style={styles.replayButton}
-          onPress={onReplayOnboarding}
-          disabled={replayLoading}
-          accessibilityLabel="Повторить онбординг"
-        >
-          {replayLoading ? (
-            <ActivityIndicator color={theme.tint} />
-          ) : (
-            <Text style={styles.replayText}>Повторить онбординг</Text>
-          )}
-        </Pressable>
+        <>
+          <Pressable
+            style={styles.replayButton}
+            onPress={() => {
+              router.push('/(app)/architect-word?replay=1' as Href);
+            }}
+            accessibilityLabel="Переслушать Слово Архитектора"
+          >
+            <Text style={styles.replayText}>Слово Архитектора (тест)</Text>
+          </Pressable>
+          <Pressable
+            style={styles.replayButton}
+            onPress={onReplayOnboarding}
+            disabled={replayLoading}
+            accessibilityLabel="Повторить онбординг"
+          >
+            {replayLoading ? (
+              <ActivityIndicator color={theme.tint} />
+            ) : (
+              <Text style={styles.replayText}>Повторить онбординг</Text>
+            )}
+          </Pressable>
+        </>
       ) : null}
       {isLoggedIn ? (
         <Pressable

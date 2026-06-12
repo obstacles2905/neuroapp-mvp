@@ -8,13 +8,3 @@ export type AppSymptomListItem = {
   neurophysiologicalRoot: LocalizedText;
   order: number;
 };
-
-export type AppCategoryListItem = {
-  id: string;
-  title: LocalizedText;
-  order: number;
-  /** Сколько опубликовано уроков в категории (для UI: 0 — нет уроков) */
-  publishedLessonsCount: number;
-  /** 0–100: доля завершённых уроков; при отсутствии уроков с бэка приходит 0 */
-  percentComplete: number;
-};

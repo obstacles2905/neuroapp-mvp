@@ -61,13 +61,19 @@ async function runMediaUpload(
     if (input.onPersist) {
       await input.onPersist(result);
     }
-    const doneTitle =
-      input.folder === 'videos' ? 'Видео загружено' : 'Файл загружен';
+    const doneTitle = result.deduplicated
+      ? 'Файл уже в S3'
+      : input.folder === 'videos'
+        ? 'Видео загружено'
+        : 'Файл загружен';
+    const doneMessage = result.deduplicated
+      ? `${input.file.name} — использован существующий объект в хранилище.`
+      : `${input.file.name} сохранён в S3. Нажмите, чтобы вернуться к уроку.`;
     store.pushToast({
       id: `${jobId}-done`,
       variant: 'success',
       title: doneTitle,
-      message: `${input.file.name} сохранён в S3. Нажмите, чтобы вернуться к уроку.`,
+      message: doneMessage,
       returnPath: input.returnPath,
     });
   } catch (error) {

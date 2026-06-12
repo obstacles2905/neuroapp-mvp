@@ -2,14 +2,13 @@
 
 import { logoutAction } from '@/app/actions/auth';
 import type { AdminMe } from '@/lib/types/me';
-import { BrainCircuit, FolderTree, LayoutDashboard, UserPlus, Users } from 'lucide-react';
+import { BrainCircuit, LayoutDashboard, UserPlus, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const baseNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/content', label: 'Content Builder', icon: FolderTree },
   { href: '/mnd', label: 'MND Protocol', icon: BrainCircuit },
   { href: '/users', label: 'Users', icon: Users },
 ] as const;

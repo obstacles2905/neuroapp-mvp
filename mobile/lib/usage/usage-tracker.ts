@@ -110,5 +110,4 @@ class UsageTracker {
 export const usageTracker = new UsageTracker();
 
 export const USAGE_FOREGROUND_KEY = 'foreground';
-export const USAGE_LESSON_KEY = 'lesson';
 export const USAGE_MND_KEY = 'mnd';

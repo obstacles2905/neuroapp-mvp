@@ -10,18 +10,8 @@ export class AppUserRepository {
     private readonly repository: Repository<AppUser>,
   ) {}
 
-  findAllWithProgress(): Promise<AppUser[]> {
-    return this.repository.find({
-      relations: { progress: true },
-      order: { createdAt: 'DESC' },
-    });
-  }
-
-  findByIdWithProgressAndLessons(id: string): Promise<AppUser | null> {
-    return this.repository.findOne({
-      where: { id },
-      relations: { progress: { lesson: true } },
-    });
+  findAllOrdered(): Promise<AppUser[]> {
+    return this.repository.find({ order: { createdAt: 'DESC' } });
   }
 
   findById(id: string): Promise<AppUser | null> {

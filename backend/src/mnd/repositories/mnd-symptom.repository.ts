@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { MndSymptom } from '../../common/entity/mnd-symptom.entity';
 
 @Injectable()
@@ -23,6 +23,13 @@ export class MndSymptomRepository {
 
   findById(id: string): Promise<MndSymptom | null> {
     return this.repository.findOne({ where: { id } });
+  }
+
+  findByIds(ids: string[]): Promise<MndSymptom[]> {
+    if (ids.length === 0) {
+      return Promise.resolve([]);
+    }
+    return this.repository.find({ where: { id: In(ids) } });
   }
 
   save(entity: MndSymptom): Promise<MndSymptom> {

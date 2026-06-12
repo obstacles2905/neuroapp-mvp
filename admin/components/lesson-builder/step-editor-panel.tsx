@@ -1,9 +1,5 @@
 'use client';
 
-import {
-  deleteLessonStepAction,
-  updateLessonStepAction,
-} from '@/app/actions/lesson-steps';
 import { LocaleTabBar } from '@/components/lesson-builder/locale-tab-bar';
 import {
   MediaUploadField,
@@ -204,8 +200,8 @@ function TheoryFields({
   );
 }
 
-function buildLessonBuilderReturnPath(
-  lessonId: string,
+function buildExerciseBuilderReturnPath(
+  exerciseId: string,
   blockId: string,
   stepId: string,
 ): string {
@@ -213,7 +209,7 @@ function buildLessonBuilderReturnPath(
     block: blockId,
     step: stepId,
   });
-  return `/content/lessons/${lessonId}/builder?${params.toString()}`;
+  return `/mnd/exercises/${exerciseId}/builder?${params.toString()}`;
 }
 
 function VideoFields({
@@ -386,18 +382,31 @@ function BiometricsFields({
   );
 }
 
+type StepMutationAction = (
+  lessonId: string,
+  blockId: string,
+  stepId: string,
+  patch: { type?: LessonStepType; content?: unknown; order?: number },
+) => Promise<LessonStep>;
+
+type StepDeleteAction = (
+  lessonId: string,
+  blockId: string,
+  stepId: string,
+) => Promise<void>;
+
 export function StepEditorPanel({
   lessonId,
   blockId,
   step,
-  updateStep = updateLessonStepAction,
-  deleteStep = deleteLessonStepAction,
+  updateStep,
+  deleteStep,
 }: {
   lessonId: string;
   blockId: string | null;
   step: LessonStep | null;
-  updateStep?: typeof updateLessonStepAction;
-  deleteStep?: typeof deleteLessonStepAction;
+  updateStep: StepMutationAction;
+  deleteStep: StepDeleteAction;
 }) {
   const router = useRouter();
   const upsertSlide = useLessonBuilderStore((s) => s.upsertSlide);
@@ -436,7 +445,7 @@ export function StepEditorPanel({
       return undefined;
     }
     return {
-      returnPath: buildLessonBuilderReturnPath(lessonId, blockId, step.id),
+      returnPath: buildExerciseBuilderReturnPath(lessonId, blockId, step.id),
       onPersist: async (result) => {
         const blocks = useLessonBuilderStore.getState().blocks;
         const block = blocks.find((item) => item.id === blockId);

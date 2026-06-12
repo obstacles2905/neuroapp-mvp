@@ -8,7 +8,6 @@ import * as bcrypt from 'bcrypt';
 import { AppUserRepository } from '../analytics/app-user.repository';
 import { AuthTokensResponseDto } from '../auth/dto/auth-tokens-response.dto';
 import type { AppJwtPayload } from '../common/interfaces/app-jwt-payload.interface';
-import { buildPrioritizedCategoryIdsFromRanks } from '../common/helpers/build-prioritized-category-ids-from-ranks.helper';
 import { buildPrioritizedSymptomIdsFromRanks } from '../common/helpers/build-prioritized-symptom-ids-from-ranks.helper';
 import { ActivityStreakService } from '../activity-streak/activity-streak.service';
 import { AppRegisterDto } from './dto/app-register.dto';
@@ -62,6 +61,7 @@ export class AppAuthService {
     }
     const completed = user.onboardingCompletedAt;
     const skipped = user.onboardingSkippedAt;
+    const architectWordSeen = user.architectWordSeenAt;
     const lastCompleted = user.activityStreakLastCompletedAt;
     return {
       id: user.id,
@@ -69,9 +69,11 @@ export class AppAuthService {
       displayName: user.displayName,
       onboardingCompletedAt: completed ? completed.toISOString() : null,
       onboardingSkippedAt: skipped ? skipped.toISOString() : null,
-      prioritizedCategoryIds: buildPrioritizedCategoryIdsFromRanks(
-        user.onboardingCategoryRanks,
-      ),
+      architectWordSeenAt: architectWordSeen
+        ? architectWordSeen.toISOString()
+        : null,
+      needsArchitectWord:
+        completed != null && architectWordSeen == null,
       prioritizedSymptomIds: buildPrioritizedSymptomIdsFromRanks(
         user.onboardingSymptomRanks,
       ),

@@ -12,7 +12,7 @@ export type MediaUploadContext = {
 };
 
 type MediaUploadFieldProps = {
-  folder: 'videos' | 'animations' | 'lessons';
+  folder: 'videos' | 'animations' | 'architect-word';
   label: string;
   onUploaded: (s3Key: string, url: string) => void;
   disabled?: boolean;

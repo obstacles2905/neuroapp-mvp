@@ -5,11 +5,17 @@ import {
 } from '@/constants/onboarding-flow.copy';
 import { useAuth } from '@/contexts/AuthContext';
 import { ApiError } from '@/lib/api';
+import { ArchitectWordFlow } from '@/features/architect-word/ArchitectWordFlow';
+import {
+  completeArchitectWord,
+  fetchArchitectWordPresentation,
+} from '@/lib/api/architect-word';
 import {
   fetchOnboardingSymptoms,
   skipOnboarding,
   submitOnboarding,
 } from '@/lib/api/app-onboarding';
+import type { ArchitectWordSlide } from '@/lib/api/types/architect-word.types';
 import type { AppSymptomListItem } from '@/lib/api/types/onboarding.types';
 import type { AppTokens } from '@/constants/theme';
 import { pickLocalized } from '@/lib/i18n/pick-localized';
@@ -37,6 +43,7 @@ type OnboardingPhase =
   | 'biometric_m2_action'
   | 'symptoms_select'
   | 'symptoms_rank'
+  | 'architect_word'
   | 'value_proposition'
   | 'subscription_stub';
 
@@ -79,6 +86,10 @@ export default function OnboardingScreen(): React.JSX.Element {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [architectSlides, setArchitectSlides] = useState<ArchitectWordSlide[]>(
+    [],
+  );
+  const [architectLoading, setArchitectLoading] = useState(false);
 
   const canLeaveToApp =
     user != null &&
@@ -148,10 +159,34 @@ export default function OnboardingScreen(): React.JSX.Element {
     try {
       await submitOnboarding(rankedIds);
       await refreshUser();
-      setPhase('value_proposition');
+      setArchitectLoading(true);
+      setPhase('architect_word');
+      const presentation = await fetchArchitectWordPresentation();
+      setArchitectSlides(presentation.slides);
+      if (presentation.skip) {
+        setPhase('value_proposition');
+      }
     } catch (e) {
       const msg =
         e instanceof ApiError ? e.message : 'Не удалось сохранить. Повторите.';
+      setError(msg);
+      setPhase('symptoms_rank');
+    } finally {
+      setArchitectLoading(false);
+      setSubmitting(false);
+    }
+  }
+
+  async function onFinishArchitectWord(): Promise<void> {
+    setError(null);
+    setSubmitting(true);
+    try {
+      await completeArchitectWord();
+      await refreshUser();
+      setPhase('value_proposition');
+    } catch (e) {
+      const msg =
+        e instanceof ApiError ? e.message : 'Не удалось завершить. Повторите.';
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -301,6 +336,19 @@ export default function OnboardingScreen(): React.JSX.Element {
           setPhase('symptoms_select');
           setError(null);
         }}
+      />
+    );
+  }
+
+  if (phase === 'architect_word') {
+    return (
+      <ArchitectWordFlow
+        slides={architectSlides}
+        loading={architectLoading}
+        submitting={submitting}
+        error={error}
+        onFinish={onFinishArchitectWord}
+        finishLabel="Дальше"
       />
     );
   }

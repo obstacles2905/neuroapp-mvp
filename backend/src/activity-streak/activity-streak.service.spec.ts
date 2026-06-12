@@ -1,7 +1,7 @@
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppUserRepository } from '../analytics/app-user.repository';
-import { UserLessonProgress } from '../common/entity/user-lesson-progress.entity';
+import { AppUserMndExerciseCompletion } from '../common/entity/app-user-mnd-exercise-completion.entity';
 import { ActivityStreakService } from './activity-streak.service';
 
 describe('ActivityStreakService', () => {
@@ -12,7 +12,7 @@ describe('ActivityStreakService', () => {
     save: jest.fn().mockImplementation((u: unknown) => Promise.resolve(u)),
   };
 
-  const mockProgressRepo = {
+  const mockMndCompletionRepo = {
     query: jest.fn().mockResolvedValue([]),
   };
 
@@ -25,8 +25,8 @@ describe('ActivityStreakService', () => {
         ActivityStreakService,
         { provide: AppUserRepository, useValue: mockRepo },
         {
-          provide: getRepositoryToken(UserLessonProgress),
-          useValue: mockProgressRepo,
+          provide: getRepositoryToken(AppUserMndExerciseCompletion),
+          useValue: mockMndCompletionRepo,
         },
       ],
     }).compile();
@@ -102,17 +102,17 @@ describe('ActivityStreakService', () => {
     expect(saved.activityStreakCount).toBe(0);
   });
 
-  it('calendar merges lesson and mnd completion days', async () => {
+  it('calendar returns mnd completion days', async () => {
     expect.assertions(3);
     const y = 2026;
     const m = 4;
-    mockProgressRepo.query.mockResolvedValue([
+    mockMndCompletionRepo.query.mockResolvedValue([
       { day: '2026-04-15' },
       { day: '2026-04-16' },
     ]);
     const res = await service.getActivityCalendar(userId, y, m);
     expect(res.activeDays).toEqual(['2026-04-15', '2026-04-16']);
     expect(res.daysPracticedInMonth).toBe(2);
-    expect(mockProgressRepo.query).toHaveBeenCalled();
+    expect(mockMndCompletionRepo.query).toHaveBeenCalled();
   });
 });

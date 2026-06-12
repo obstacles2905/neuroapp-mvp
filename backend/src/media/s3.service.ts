@@ -1,6 +1,8 @@
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
+  ListObjectsV2Command,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -19,8 +21,13 @@ import {
   S3_CLIENT,
 } from '../common/constants/s3-client.token';
 import { S3_ENV_KEYS } from '../common/constants/s3-env-keys.constant';
-import { buildMediaObjectKey } from '../common/helpers/build-media-object-key.helper';
+import {
+  buildStableMediaObjectKey,
+  legacyMediaObjectKeySuffix,
+} from '../common/helpers/build-stable-media-object-key.helper';
+import { isS3NotFoundError } from '../common/helpers/is-s3-not-found-error.helper';
 import { resolveS3PublicUrl } from '../common/helpers/resolve-s3-public-url.helper';
+import { sanitizeUploadFileName } from '../common/helpers/sanitize-upload-file-name.helper';
 import type { MediaPresignResult } from '../common/interfaces/media-presign-result.interface';
 import type { MediaUploadResult } from '../common/interfaces/media-upload-result.interface';
 import type { Readable } from 'stream';
@@ -38,6 +45,11 @@ type S3ObjectStreamResult = {
   contentLength: number | undefined;
   contentRange: string | undefined;
   statusCode: 200 | 206;
+};
+
+type ResolvedUploadObjectKey = {
+  objectKey: string;
+  reused: boolean;
 };
 
 @Injectable()
@@ -84,9 +96,19 @@ export class S3Service {
     file: Express.Multer.File,
     folder?: string,
   ): Promise<MediaUploadResult> {
-    const objectKey = buildMediaObjectKey(file.originalname, folder);
-    await this.persistObject(objectKey, file.buffer, file.mimetype);
-    return { s3Key: objectKey, url: this.getFileUrl(objectKey) };
+    const resolved = await this.resolveUploadObjectKey(file.originalname, folder);
+    if (!resolved.reused) {
+      await this.persistObject(
+        resolved.objectKey,
+        file.buffer,
+        file.mimetype,
+      );
+    }
+    return {
+      s3Key: resolved.objectKey,
+      url: this.getFileUrl(resolved.objectKey),
+      deduplicated: resolved.reused,
+    };
   }
 
   async createPresignedUpload(
@@ -99,11 +121,26 @@ export class S3Service {
       );
     }
 
-    const objectKey = buildMediaObjectKey(input.originalName, input.folder);
+    const resolved = await this.resolveUploadObjectKey(
+      input.originalName,
+      input.folder,
+    );
+    const url = this.getFileUrl(resolved.objectKey);
+    if (resolved.reused) {
+      return {
+        uploadUrl: '',
+        s3Key: resolved.objectKey,
+        url,
+        method: 'PUT',
+        headers: {},
+        deduplicated: true,
+      };
+    }
+
     const contentType = this.resolveContentType(input.contentType);
     const command = new PutObjectCommand({
       Bucket: this.bucket,
-      Key: objectKey,
+      Key: resolved.objectKey,
       ContentType: contentType,
       ContentLength: input.fileSize,
     });
@@ -113,10 +150,11 @@ export class S3Service {
 
     return {
       uploadUrl,
-      s3Key: objectKey,
-      url: this.getFileUrl(objectKey),
+      s3Key: resolved.objectKey,
+      url,
       method: 'PUT',
       headers: { 'Content-Type': contentType },
+      deduplicated: false,
     };
   }
 
@@ -124,6 +162,90 @@ export class S3Service {
     await this.s3Client.send(
       new DeleteObjectCommand({ Bucket: this.bucket, Key: objectKey }),
     );
+  }
+
+  private async resolveUploadObjectKey(
+    originalName: string,
+    folder?: string,
+  ): Promise<ResolvedUploadObjectKey> {
+    const safeName = sanitizeUploadFileName(originalName);
+    const stableKey = buildStableMediaObjectKey(originalName, folder);
+
+    if (await this.objectExists(stableKey)) {
+      return { objectKey: stableKey, reused: true };
+    }
+
+    const legacyKey = await this.findLegacyObjectKeyByFileName(folder, safeName);
+    if (legacyKey != null) {
+      return { objectKey: legacyKey, reused: true };
+    }
+
+    return { objectKey: stableKey, reused: false };
+  }
+
+  private async objectExists(objectKey: string): Promise<boolean> {
+    try {
+      await this.s3Client.send(
+        new HeadObjectCommand({
+          Bucket: this.bucket,
+          Key: objectKey,
+        }),
+      );
+      return true;
+    } catch (error) {
+      if (isS3NotFoundError(error)) {
+        return false;
+      }
+      throw error;
+    }
+  }
+
+  private async findLegacyObjectKeyByFileName(
+    folder: string | undefined,
+    safeName: string,
+  ): Promise<string | null> {
+    const prefix = this.resolveListPrefix(folder);
+    if (prefix == null) {
+      return null;
+    }
+
+    const suffix = legacyMediaObjectKeySuffix(safeName);
+    let continuationToken: string | undefined;
+
+    do {
+      const response = await this.s3Client.send(
+        new ListObjectsV2Command({
+          Bucket: this.bucket,
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+          MaxKeys: 1000,
+        }),
+      );
+
+      for (const item of response.Contents ?? []) {
+        const key = item.Key;
+        if (key == null) {
+          continue;
+        }
+        if (key.endsWith(suffix)) {
+          return key;
+        }
+      }
+
+      continuationToken = response.IsTruncated
+        ? response.NextContinuationToken
+        : undefined;
+    } while (continuationToken != null);
+
+    return null;
+  }
+
+  private resolveListPrefix(folder: string | undefined): string | null {
+    if (folder == null || folder.trim().length === 0) {
+      return null;
+    }
+    const normalized = folder.replace(/^\/+|\/+$/g, '').replace(/\\/g, '/');
+    return `${normalized}/`;
   }
 
   private resolveMaxFileBytes(): number {

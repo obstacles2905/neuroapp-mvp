@@ -17,9 +17,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { MndExerciseStep } from '../common/entity/mnd-exercise-step.entity';
-import { CreateLessonStepDto } from '../content-builder/dto/create-lesson-step.dto';
-import { ReorderLessonStepsDto } from '../content-builder/dto/reorder-lesson-steps.dto';
-import { UpdateLessonStepDto } from '../content-builder/dto/update-lesson-step.dto';
+import { CreateExerciseStepDto } from '../common/dto/exercise-step/create-exercise-step.dto';
+import { ReorderExerciseStepsDto } from '../common/dto/exercise-step/reorder-exercise-steps.dto';
+import { UpdateExerciseStepDto } from '../common/dto/exercise-step/update-exercise-step.dto';
 import { MndExerciseStepService } from './mnd-exercise-step.service';
 
 @ApiTags('mnd-exercise-steps')
@@ -53,7 +53,7 @@ export class MndExerciseStepController {
   create(
     @Param('exerciseId', ParseUUIDPipe) exerciseId: string,
     @Param('blockId', ParseUUIDPipe) blockId: string,
-    @Body() dto: CreateLessonStepDto,
+    @Body() dto: CreateExerciseStepDto,
   ): Promise<MndExerciseStep> {
     return this.stepService.create(exerciseId, blockId, dto);
   }
@@ -64,7 +64,7 @@ export class MndExerciseStepController {
   async reorder(
     @Param('exerciseId', ParseUUIDPipe) exerciseId: string,
     @Param('blockId', ParseUUIDPipe) blockId: string,
-    @Body() dto: ReorderLessonStepsDto,
+    @Body() dto: ReorderExerciseStepsDto,
   ): Promise<void> {
     await this.stepService.reorder(exerciseId, blockId, dto);
   }
@@ -75,7 +75,7 @@ export class MndExerciseStepController {
     @Param('exerciseId', ParseUUIDPipe) exerciseId: string,
     @Param('blockId', ParseUUIDPipe) blockId: string,
     @Param('stepId', ParseUUIDPipe) stepId: string,
-    @Body() dto: UpdateLessonStepDto,
+    @Body() dto: UpdateExerciseStepDto,
   ): Promise<MndExerciseStep> {
     return this.stepService.update(exerciseId, blockId, stepId, dto);
   }

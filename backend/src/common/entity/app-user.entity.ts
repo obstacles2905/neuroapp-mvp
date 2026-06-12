@@ -2,13 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import type { OnboardingCategoryRankItem } from '../types/onboarding-category-rank.type';
+import type { ArchitectWordPlaylistSnapshot } from '../types/architect-word-playlist-snapshot.type';
 import type { OnboardingSymptomRankItem } from '../types/onboarding-symptom-rank.type';
-import { UserLessonProgress } from './user-lesson-progress.entity';
 
 @Entity({ name: 'app_users' })
 export class AppUser {
@@ -58,18 +56,22 @@ export class AppUser {
   })
   onboardingSkippedAt: Date | null;
 
-  @Column({
-    name: 'onboarding_category_weights',
-    type: 'jsonb',
-    nullable: true,
-  })
-  onboardingCategoryRanks: OnboardingCategoryRankItem[] | null;
-
   @Column({ name: 'onboarding_symptom_ranks', type: 'jsonb', nullable: true })
   onboardingSymptomRanks: OnboardingSymptomRankItem[] | null;
 
-  @OneToMany(() => UserLessonProgress, (progress) => progress.appUser)
-  progress: UserLessonProgress[];
+  @Column({
+    name: 'architect_word_seen_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  architectWordSeenAt: Date | null;
+
+  @Column({
+    name: 'architect_word_playlist_snapshot',
+    type: 'jsonb',
+    nullable: true,
+  })
+  architectWordPlaylistSnapshot: ArchitectWordPlaylistSnapshot | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
@@ -77,14 +79,9 @@ export class AppUser {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 
-  /**
-   * Серия завершённых упражнений подряд: каждое следующее — не позднее 24 ч
-   * после предыдущего засчитанного завершения.
-   */
   @Column({ name: 'activity_streak_count', type: 'int', default: 0 })
   activityStreakCount: number;
 
-  /** Момент последнего завершённого упражнения, засчитанного в стрик */
   @Column({
     name: 'activity_streak_last_completed_at',
     type: 'timestamptz',
@@ -92,7 +89,6 @@ export class AppUser {
   })
   activityStreakLastCompletedAt: Date | null;
 
-  /** IANA timezone (например Europe/Moscow) для дневной аналитики */
   @Column({
     name: 'usage_timezone',
     type: 'varchar',

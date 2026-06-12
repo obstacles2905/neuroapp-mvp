@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { LessonProgressAnalyticsRowDto } from './lesson-progress-analytics-row.dto';
 import { UsageDailyRowDto } from './usage-daily-row.dto';
 
 export class AppUserDetailResponseDto {
@@ -15,8 +14,8 @@ export class AppUserDetailResponseDto {
   @ApiProperty()
   createdAt: string;
 
-  @ApiProperty({ type: [LessonProgressAnalyticsRowDto] })
-  progress: LessonProgressAnalyticsRowDto[];
+  @ApiProperty({ description: 'Завершённые MND-упражнения (уникальные)' })
+  mndExercisesCompleted: number;
 
   @ApiProperty({ nullable: true })
   usageTimezone: string | null;

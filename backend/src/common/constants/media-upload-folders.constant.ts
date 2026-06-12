@@ -1,7 +1,7 @@
 export const MEDIA_UPLOAD_FOLDERS = [
   'videos',
   'animations',
-  'lessons',
+  'architect-word',
 ] as const;
 
 export type MediaUploadFolder =

@@ -24,4 +24,11 @@ export class PresignMediaUploadResponseDto {
     additionalProperties: { type: 'string' },
   })
   headers: Record<string, string>;
+
+  @ApiProperty({
+    required: false,
+    description:
+      'Файл с таким именем уже есть в бакете — uploadUrl пустой, используйте s3Key',
+  })
+  deduplicated?: boolean;
 }

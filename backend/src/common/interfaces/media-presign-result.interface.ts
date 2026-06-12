@@ -4,4 +4,6 @@ export interface MediaPresignResult {
   url: string;
   method: 'PUT';
   headers: Record<string, string>;
+  /** true — файл с таким именем уже в бакете, повторная загрузка не нужна */
+  deduplicated?: boolean;
 }

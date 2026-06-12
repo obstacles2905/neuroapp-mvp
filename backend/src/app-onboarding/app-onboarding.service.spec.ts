@@ -33,7 +33,7 @@ describe('AppOnboardingService', () => {
   });
 
   it('submit saves ordered symptom ranks 1..n', async () => {
-    expect.assertions(2);
+    expect.assertions(1);
     mockMndSymptomService.findPublishedForOnboarding.mockResolvedValue([
       { id: symptomA } as MndSymptom,
       { id: symptomB } as MndSymptom,
@@ -50,13 +50,11 @@ describe('AppOnboardingService', () => {
         rank: number;
         isActive: boolean;
       }[];
-      onboardingCategoryRanks: null;
     };
     expect(saved.onboardingSymptomRanks).toEqual([
       { symptomId: symptomB, rank: 1, isActive: true },
       { symptomId: symptomA, rank: 2, isActive: true },
     ]);
-    expect(saved.onboardingCategoryRanks).toBeNull();
   });
 
   it('submit throws on unknown symptom', async () => {

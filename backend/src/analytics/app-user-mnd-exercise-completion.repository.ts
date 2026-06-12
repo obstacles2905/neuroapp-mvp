@@ -23,6 +23,10 @@ export class AppUserMndExerciseCompletionRepository {
       .execute();
   }
 
+  countByAppUserId(appUserId: string): Promise<number> {
+    return this.repository.count({ where: { appUserId } });
+  }
+
   async findMndExerciseIdsCompletedByUser(
     appUserId: string,
   ): Promise<string[]> {

@@ -21,7 +21,7 @@ export default async function UsersPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Users</h1>
         <p className="mt-1 text-sm text-zinc-600">
-          Пользователи мобильного приложения и агрегированный прогресс по урокам.
+          Пользователи мобильного приложения и агрегированный прогресс по MND-упражнениям.
         </p>
       </div>
       <Card>
@@ -40,8 +40,7 @@ export default async function UsersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Имя / email</TableHead>
-                  <TableHead className="text-right">Завершено</TableHead>
-                  <TableHead className="text-right">В процессе</TableHead>
+                  <TableHead className="text-right">MND завершено</TableHead>
                   <TableHead className="text-right">В приложении</TableHead>
                   <TableHead className="text-right">Упражнения</TableHead>
                   <TableHead>Последний визит</TableHead>
@@ -60,10 +59,7 @@ export default async function UsersPage() {
                       ) : null}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Badge variant="secondary">{u.lessonsCompleted}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Badge variant="outline">{u.lessonsInProgress}</Badge>
+                      <Badge variant="secondary">{u.mndExercisesCompleted}</Badge>
                     </TableCell>
                     <TableCell className="text-right text-sm text-zinc-700">
                       {formatMinutes(u.totalAppMinutes)}
@@ -81,9 +77,9 @@ export default async function UsersPage() {
                     <TableCell className="text-right">
                       <Link
                         href={`/users/${u.id}`}
-                        className="text-sm font-medium text-zinc-900 underline-offset-4 hover:underline"
+                        className="text-sm font-medium text-zinc-700 hover:text-zinc-900"
                       >
-                        Детали
+                        Подробнее →
                       </Link>
                     </TableCell>
                   </TableRow>

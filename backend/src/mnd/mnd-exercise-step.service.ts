@@ -5,10 +5,10 @@ import {
 } from '@nestjs/common';
 import { MndExerciseStep } from '../common/entity/mnd-exercise-step.entity';
 import { parseLessonStepContent } from '../common/helpers/parse-lesson-step-content.helper';
-import { CreateLessonStepDto } from '../content-builder/dto/create-lesson-step.dto';
-import { ReorderLessonStepsDto } from '../content-builder/dto/reorder-lesson-steps.dto';
-import { ReorderStepItemDto } from '../content-builder/dto/reorder-step-item.dto';
-import { UpdateLessonStepDto } from '../content-builder/dto/update-lesson-step.dto';
+import { CreateExerciseStepDto } from '../common/dto/exercise-step/create-exercise-step.dto';
+import { ReorderExerciseStepsDto } from '../common/dto/exercise-step/reorder-exercise-steps.dto';
+import { ReorderStepItemDto } from '../common/dto/exercise-step/reorder-step-item.dto';
+import { UpdateExerciseStepDto } from '../common/dto/exercise-step/update-exercise-step.dto';
 import { MndExerciseBlockRepository } from './repositories/mnd-exercise-block.repository';
 import { MndExerciseStepRepository } from './repositories/mnd-exercise-step.repository';
 import { MndExerciseRepository } from './repositories/mnd-exercise.repository';
@@ -45,7 +45,7 @@ export class MndExerciseStepService {
   async create(
     exerciseId: string,
     blockId: string,
-    dto: CreateLessonStepDto,
+    dto: CreateExerciseStepDto,
   ): Promise<MndExerciseStep> {
     await this.ensureBlockInExercise(exerciseId, blockId);
     const parsed = parseLessonStepContent(dto.type, dto.content);
@@ -66,7 +66,7 @@ export class MndExerciseStepService {
     exerciseId: string,
     blockId: string,
     stepId: string,
-    dto: UpdateLessonStepDto,
+    dto: UpdateExerciseStepDto,
   ): Promise<MndExerciseStep> {
     const step = await this.findOne(exerciseId, blockId, stepId);
     const nextType = dto.type ?? step.type;
@@ -96,7 +96,7 @@ export class MndExerciseStepService {
   async reorder(
     exerciseId: string,
     blockId: string,
-    dto: ReorderLessonStepsDto,
+    dto: ReorderExerciseStepsDto,
   ): Promise<void> {
     await this.ensureBlockInExercise(exerciseId, blockId);
     const steps = await this.stepRepository.findByBlockIdOrdered(blockId);

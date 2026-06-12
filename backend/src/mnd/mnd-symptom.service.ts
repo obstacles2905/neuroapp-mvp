@@ -24,6 +24,10 @@ export class MndSymptomService {
     return symptom;
   }
 
+  findByIds(ids: string[]): Promise<MndSymptom[]> {
+    return this.symptomRepository.findByIds(ids);
+  }
+
   create(dto: CreateMndSymptomDto): Promise<MndSymptom> {
     const entity = this.symptomRepository.create({
       code: dto.code,

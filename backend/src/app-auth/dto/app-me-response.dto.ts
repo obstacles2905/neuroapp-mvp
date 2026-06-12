@@ -24,11 +24,16 @@ export class AppMeResponseDto {
   onboardingSkippedAt: string | null;
 
   @ApiProperty({
-    type: [String],
-    description:
-      'Id категорий по убыванию важности (legacy; после MND-онбординга обычно пусто)',
+    nullable: true,
+    description: 'ISO 8601 — первичный просмотр «Слово Архитектора» завершён',
   })
-  prioritizedCategoryIds: string[];
+  architectWordSeenAt: string | null;
+
+  @ApiProperty({
+    description:
+      'Нужно показать «Слово Архитектора» (онбординг завершён, просмотр ещё не был)',
+  })
+  needsArchitectWord: boolean;
 
   @ApiProperty({
     type: [String],

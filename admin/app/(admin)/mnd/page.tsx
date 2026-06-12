@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import {
   updateMndStackActiveAction,
   updateMndSymptomPublishedAction,
@@ -5,7 +7,13 @@ import {
 import { MndExerciseRowMenu } from '@/components/mnd/mnd-exercise-row-menu';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -23,7 +31,6 @@ import type {
   MndSymptom,
 } from '@/lib/types/api';
 import { cn } from '@/lib/utils';
-import Link from 'next/link';
 
 function text(value?: LocalizedText | null): string {
   if (!value) {
@@ -149,17 +156,25 @@ export default async function MndPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <form
-                          action={updateMndSymptomPublishedAction.bind(
-                            null,
-                            symptom.id,
-                            !symptom.isPublished,
-                          )}
-                        >
-                          <button className="text-xs font-medium text-primary underline-offset-4 hover:underline">
-                            {symptom.isPublished ? 'Скрыть' : 'Опубликовать'}
-                          </button>
-                        </form>
+                        <div className="flex flex-col items-start gap-1">
+                          <Link
+                            href={`/mnd/symptoms/${symptom.id}/architect-word`}
+                            className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+                          >
+                            Слово Архитектора →
+                          </Link>
+                          <form
+                            action={updateMndSymptomPublishedAction.bind(
+                              null,
+                              symptom.id,
+                              !symptom.isPublished,
+                            )}
+                          >
+                            <button className="text-xs font-medium text-primary underline-offset-4 hover:underline">
+                              {symptom.isPublished ? 'Скрыть' : 'Опубликовать'}
+                            </button>
+                          </form>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -225,9 +240,6 @@ export default async function MndPage() {
         <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
           <div>
             <CardTitle>Упражнения</CardTitle>
-            <CardDescription>
-              180 микро-упражнений будут заполняться здесь. Сейчас таблица пустая после reset.
-            </CardDescription>
           </div>
           <Link href="/mnd/exercises/new" className={cn(buttonVariants({ variant: 'outline' }))}>
             Добавить

@@ -9,11 +9,11 @@ export type AppUserMe = {
   displayName: string | null;
   onboardingCompletedAt: string | null;
   onboardingSkippedAt: string | null;
-  /** Порядок важности категорий (legacy; после MND-онбординга обычно пусто) */
-  prioritizedCategoryIds: string[];
   /** Порядок важности симптомов MND (первый id — высший приоритет) */
   prioritizedSymptomIds: string[];
   needsOnboarding: boolean;
+  architectWordSeenAt: string | null;
+  needsArchitectWord: boolean;
   /** Дни подряд (UTC) с хотя бы одним «днём активности» */
   activityStreakCount: number;
   /** YYYY-MM-DD (UTC) последнего засчитанного дня */

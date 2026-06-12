@@ -17,13 +17,13 @@ export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
   @Get('users')
-  @ApiOperation({ summary: 'List app users with lesson progress summary' })
+  @ApiOperation({ summary: 'List app users with MND progress summary' })
   listUsers(): Promise<AppUserSummaryResponseDto[]> {
     return this.analyticsService.listUsers();
   }
 
   @Get('users/:id')
-  @ApiOperation({ summary: 'App user detail with per-lesson progress and usage' })
+  @ApiOperation({ summary: 'App user detail with MND progress and usage' })
   @ApiQuery({
     name: 'from',
     required: false,

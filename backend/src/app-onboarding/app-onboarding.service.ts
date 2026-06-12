@@ -52,7 +52,6 @@ export class AppOnboardingService {
       throw new UnauthorizedException();
     }
     user.onboardingSymptomRanks = ranks;
-    user.onboardingCategoryRanks = null;
     user.onboardingCompletedAt = new Date();
     user.onboardingSkippedAt = null;
     await this.appUserRepository.save(user);
@@ -73,9 +72,10 @@ export class AppOnboardingService {
       throw new UnauthorizedException();
     }
     user.onboardingCompletedAt = null;
-    user.onboardingCategoryRanks = null;
     user.onboardingSymptomRanks = null;
     user.onboardingSkippedAt = null;
+    user.architectWordSeenAt = null;
+    user.architectWordPlaylistSnapshot = null;
     await this.appUserRepository.save(user);
   }
 }

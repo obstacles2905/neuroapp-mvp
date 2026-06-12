@@ -43,11 +43,25 @@ export default async function UserDetailPage(props: PageProps) {
       </div>
       <Card>
         <CardHeader>
+          <CardTitle className="text-base">MND-прогресс</CardTitle>
+          <CardDescription>
+            Уникальные завершённые MND-упражнения из{' '}
+            <code className="text-xs">app_user_mnd_exercise_completions</code>.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Badge variant="secondary" className="text-base">
+            {user.mndExercisesCompleted} завершено
+          </Badge>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
           <CardTitle className="text-base">Время в приложении</CardTitle>
           <CardDescription>
             Дни в часовом поясе пользователя
             {user.usageTimezone ? ` (${user.usageTimezone})` : ' (UTC, пока нет данных с устройства)'}
-            . «Упражнения» — экраны урока и MND.
+            . «Упражнения» — экраны MND.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -102,46 +116,6 @@ export default async function UserDetailPage(props: PageProps) {
                       {formatMs(row.exerciseMs)}
                     </TableCell>
                     <TableCell className="text-right">{row.sessionCount}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Прогресс по урокам</CardTitle>
-          <CardDescription>Записи из user_lesson_progress</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {user.progress.length === 0 ? (
-            <p className="text-sm text-zinc-500">Нет данных о прогрессе.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Урок</TableHead>
-                  <TableHead>Статус</TableHead>
-                  <TableHead className="text-right">%</TableHead>
-                  <TableHead>Активность</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {user.progress.map((row) => (
-                  <TableRow key={`${user.id}-${row.lessonId}`}>
-                    <TableCell>
-                      {row.lessonTitle.ru || row.lessonTitle.en || row.lessonId}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{row.status}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">{row.percentComplete}</TableCell>
-                    <TableCell className="text-sm text-zinc-600">
-                      {row.lastActiveAt
-                        ? new Date(row.lastActiveAt).toLocaleString()
-                        : '—'}
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

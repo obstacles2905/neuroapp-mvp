@@ -19,5 +19,8 @@ export default function Index(): React.JSX.Element | null {
   if (user.needsOnboarding) {
     return <Redirect href={'/(onboarding)' as Href} />;
   }
+  if (user.needsArchitectWord) {
+    return <Redirect href={'/(app)/architect-word' as Href} />;
+  }
   return <Redirect href="/(app)/(tabs)" />;
 }

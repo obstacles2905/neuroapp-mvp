@@ -1,8 +1,12 @@
-export type UploadMediaResult = { s3Key: string; url: string };
+export type UploadMediaResult = {
+  s3Key: string;
+  url: string;
+  deduplicated?: boolean;
+};
 
 export type UploadLessonMediaInput = {
   file: File;
-  folder: 'videos' | 'animations' | 'lessons';
+  folder: 'videos' | 'animations' | 'architect-word';
 };
 
 export type PresignMediaUploadPayload = {
@@ -16,6 +20,7 @@ type PresignMediaUploadResult = UploadMediaResult & {
   uploadUrl: string;
   method: 'PUT';
   headers: Record<string, string>;
+  deduplicated?: boolean;
 };
 
 async function requestPresign(
@@ -75,6 +80,13 @@ export async function uploadLessonMedia(
   input: UploadLessonMediaInput,
 ): Promise<UploadMediaResult> {
   const presign = await requestPresign(input);
+  if (presign.deduplicated === true) {
+    return {
+      s3Key: presign.s3Key,
+      url: presign.url,
+      deduplicated: true,
+    };
+  }
   const uploadResponse = await fetch(presign.uploadUrl, {
     method: presign.method,
     headers: presign.headers,

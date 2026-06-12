@@ -2,7 +2,7 @@ import { apiRequest } from '@/lib/api';
 
 export type UsageSegmentKind = 'app' | 'exercise';
 
-export type UsageSegmentContext = 'foreground' | 'lesson' | 'mnd_exercise';
+export type UsageSegmentContext = 'foreground' | 'mnd_exercise';
 
 export type UsageSegmentPayload = {
   clientEventId: string;

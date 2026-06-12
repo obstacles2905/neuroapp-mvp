@@ -4,34 +4,9 @@ export type LocalizedText = {
   en: string;
 };
 
-export type CategoryCatalogAudience = 'production' | 'experimental';
-
 export type MndMasterStackCode = 'ST-1' | 'ST-2' | 'ST-3' | 'ST-4' | 'ST-5' | 'ST-6';
 
 export type MndExerciseDirection = 'bottom_up' | 'top_down';
-
-export type Category = {
-  id: string;
-  title: LocalizedText;
-  description: LocalizedText;
-  order: number;
-  isPublished: boolean;
-  catalogAudience: CategoryCatalogAudience;
-  catalogFeatureFlagKey: string | null;
-  tags?: string[];
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type Lesson = {
-  id: string;
-  categoryId: string;
-  title: LocalizedText;
-  status: 'draft' | 'published';
-  order: number;
-  createdAt: string;
-  updatedAt: string;
-};
 
 export type { LessonStep, LessonStepType, LessonStepContent } from './lesson-step';
 
@@ -52,16 +27,11 @@ export type LessonBlock = {
   updatedAt: string;
 };
 
-export type LessonWithBlocks = Lesson & {
-  blocks: LessonBlock[];
-};
-
 export type AppUserSummary = {
   id: string;
   email: string | null;
   displayName: string | null;
-  lessonsCompleted: number;
-  lessonsInProgress: number;
+  mndExercisesCompleted: number;
   lastActiveAt: string | null;
   totalAppMinutes: number;
   totalExerciseMinutes: number;
@@ -76,20 +46,12 @@ export type UsageDailyRow = {
   sessionCount: number;
 };
 
-export type LessonProgressRow = {
-  lessonId: string;
-  lessonTitle: Record<string, string>;
-  status: string;
-  percentComplete: number;
-  lastActiveAt: string | null;
-};
-
 export type AppUserDetail = {
   id: string;
   email: string | null;
   displayName: string | null;
   createdAt: string;
-  progress: LessonProgressRow[];
+  mndExercisesCompleted: number;
   usageTimezone: string | null;
   totalAppMinutes: number;
   totalExerciseMinutes: number;

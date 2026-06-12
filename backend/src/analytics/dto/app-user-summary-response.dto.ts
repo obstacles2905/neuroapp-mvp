@@ -10,11 +10,8 @@ export class AppUserSummaryResponseDto {
   @ApiProperty({ nullable: true })
   displayName: string | null;
 
-  @ApiProperty()
-  lessonsCompleted: number;
-
-  @ApiProperty()
-  lessonsInProgress: number;
+  @ApiProperty({ description: 'Завершённые MND-упражнения (уникальные)' })
+  mndExercisesCompleted: number;
 
   @ApiProperty({ nullable: true, type: String })
   lastActiveAt: string | null;
@@ -25,7 +22,7 @@ export class AppUserSummaryResponseDto {
   totalAppMinutes: number;
 
   @ApiProperty({
-    description: 'Суммарные минуты на уроках и MND-упражнениях',
+    description: 'Суммарные минуты на MND-упражнениях',
   })
   totalExerciseMinutes: number;
 

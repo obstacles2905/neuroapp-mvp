@@ -117,15 +117,12 @@ export class UsageTrackingService {
   }
 
   private assertContext(item: UsageSegmentItemDto): void {
-    if (
-      item.context === UsageSegmentContext.LESSON ||
-      item.context === UsageSegmentContext.MND_EXERCISE
-    ) {
+    if (item.context === UsageSegmentContext.MND_EXERCISE) {
       if (item.contextId == null) {
         throw new BadRequestException('contextId is required for this context');
       }
       if (item.kind !== UsageSegmentKind.EXERCISE) {
-        throw new BadRequestException('lesson/mnd segments must be exercise kind');
+        throw new BadRequestException('mnd segments must be exercise kind');
       }
       return;
     }

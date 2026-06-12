@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { AppUserRepository } from '../analytics/app-user.repository';
-import { UserLessonProgress } from '../common/entity/user-lesson-progress.entity';
+import { AppUserMndExerciseCompletion } from '../common/entity/app-user-mnd-exercise-completion.entity';
 import {
   ActivityCalendarResponseDto,
 } from './dto/activity-calendar-response.dto';
@@ -22,15 +22,10 @@ import {
 export class ActivityStreakService {
   constructor(
     private readonly appUserRepository: AppUserRepository,
-    @InjectRepository(UserLessonProgress)
-    private readonly progressRepository: Repository<UserLessonProgress>,
+    @InjectRepository(AppUserMndExerciseCompletion)
+    private readonly mndCompletionRepository: Repository<AppUserMndExerciseCompletion>,
   ) {}
 
-  /**
-   * Засчитывает стрик только при полном завершении упражнения (урок / MND).
-   * Счётчик растёт, если новое завершение не позднее 24 ч после предыдущего;
-   * иначе серия обрывается и начинается с 1.
-   */
   async onQualifyingActivityCompletion(
     appUserId: string,
     now: Date = new Date(),
@@ -69,9 +64,6 @@ export class ActivityStreakService {
     );
   }
 
-  /**
-   * Обнуляет просроченный стрик в БД (например при GET /me).
-   */
   async persistExpiredStreakIfNeeded(
     appUserId: string,
     now: Date = new Date(),
@@ -122,9 +114,6 @@ export class ActivityStreakService {
     };
   }
 
-  /**
-   * Дни с активностью (UTC): завершённые уроки и впервые завершённые MND-упражнения.
-   */
   private async fetchActiveUtcYyyyMmDdInMonth(
     appUserId: string,
     year: number,
@@ -134,30 +123,16 @@ export class ActivityStreakService {
     const from = `${year}-${pad(month)}-01`;
     const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
     const to = `${year}-${pad(month)}-${pad(lastDay)}`;
-    const rows = await this.progressRepository.query(
+    const rows = await this.mndCompletionRepository.query(
       `
-      SELECT day
-      FROM (
-        SELECT TO_CHAR(
-          (p.lesson_completed_at AT TIME ZONE 'UTC')::date,
-          'YYYY-MM-DD'
-        ) AS day
-        FROM user_lesson_progress p
-        WHERE p.app_user_id = $1
-          AND p.lesson_completed_at IS NOT NULL
-          AND (p.lesson_completed_at AT TIME ZONE 'UTC')::date >= $2::date
-          AND (p.lesson_completed_at AT TIME ZONE 'UTC')::date <= $3::date
-        UNION
-        SELECT TO_CHAR(
-          (c.first_completed_at AT TIME ZONE 'UTC')::date,
-          'YYYY-MM-DD'
-        ) AS day
-        FROM app_user_mnd_exercise_completions c
-        WHERE c.app_user_id = $1
-          AND (c.first_completed_at AT TIME ZONE 'UTC')::date >= $2::date
-          AND (c.first_completed_at AT TIME ZONE 'UTC')::date <= $3::date
-      ) AS u
-      WHERE u.day IS NOT NULL
+      SELECT TO_CHAR(
+        (c.first_completed_at AT TIME ZONE 'UTC')::date,
+        'YYYY-MM-DD'
+      ) AS day
+      FROM app_user_mnd_exercise_completions c
+      WHERE c.app_user_id = $1
+        AND (c.first_completed_at AT TIME ZONE 'UTC')::date >= $2::date
+        AND (c.first_completed_at AT TIME ZONE 'UTC')::date <= $3::date
       ORDER BY 1
       `,
       [appUserId, from, to],

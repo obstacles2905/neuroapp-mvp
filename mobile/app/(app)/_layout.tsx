@@ -18,16 +18,12 @@ export default function AppGroupLayout(): React.JSX.Element {
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen
-        name="category/[id]"
-        options={{ title: 'Категория', headerBackTitle: 'Назад' }}
-      />
-      <Stack.Screen
-        name="lesson/[id]"
-        options={{ title: 'Урок', headerBackTitle: 'Назад' }}
-      />
-      <Stack.Screen
         name="mnd-exercise/[id]"
         options={{ title: 'Упражнение', headerBackTitle: 'Назад' }}
+      />
+      <Stack.Screen
+        name="architect-word"
+        options={{ title: 'Слово Архитектора', headerBackTitle: 'Назад' }}
       />
     </Stack>
   );

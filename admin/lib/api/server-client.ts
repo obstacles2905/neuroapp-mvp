@@ -49,6 +49,31 @@ export async function apiPost<TBody extends object, TRes>(
   return response.json() as Promise<TRes>;
 }
 
+export async function apiPut<TBody extends object, TRes>(
+  path: string,
+  body: TBody,
+): Promise<TRes> {
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  const url = `${getApiBase()}${normalized}`;
+  const headers = {
+    ...(await authHeaders()),
+    'Content-Type': 'application/json',
+  };
+  const response = await fetch(url, {
+    method: 'PUT',
+    headers,
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `API ${response.status}`);
+  }
+  if (response.status === 204) {
+    return undefined as TRes;
+  }
+  return response.json() as Promise<TRes>;
+}
+
 export async function apiPatch<TBody extends object, TRes>(
   path: string,
   body: TBody,
