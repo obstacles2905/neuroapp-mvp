@@ -36,6 +36,30 @@ export class AppMeResponseDto {
   needsArchitectWord: boolean;
 
   @ApiProperty({
+    nullable: true,
+    description: 'ISO 8601 — первичный просмотр «Приветствие» завершён',
+  })
+  sessionGreetingSeenAt: string | null;
+
+  @ApiProperty({
+    description:
+      'Нужно показать «Приветствие» (онбординг завершён, экран ещё не пройден)',
+  })
+  needsSessionGreeting: boolean;
+
+  @ApiProperty({
+    nullable: true,
+    description: 'ISO 8601 — первичный просмотр «Финальное слово» завершён',
+  })
+  sessionFinalWordSeenAt: string | null;
+
+  @ApiProperty({
+    description:
+      'Нужно показать «Финальное слово» («Слово Архитектора» завершено, экран ещё не пройден)',
+  })
+  needsSessionFinalWord: boolean;
+
+  @ApiProperty({
     type: [String],
     description:
       'Id симптомов MND по убыванию важности (только активные записи ранжирования)',

@@ -22,8 +22,16 @@ export default function AppGroupLayout(): React.JSX.Element {
         options={{ title: 'Упражнение', headerBackTitle: 'Назад' }}
       />
       <Stack.Screen
+        name="session-greeting"
+        options={{ title: 'Приветствие', headerBackVisible: false }}
+      />
+      <Stack.Screen
         name="architect-word"
         options={{ title: 'Слово Архитектора', headerBackTitle: 'Назад' }}
+      />
+      <Stack.Screen
+        name="session-final-word"
+        options={{ title: 'Финальное слово', headerBackVisible: false }}
       />
     </Stack>
   );

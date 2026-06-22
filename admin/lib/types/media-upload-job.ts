@@ -5,7 +5,7 @@ export type MediaUploadJobStatus = 'uploading' | 'success' | 'error';
 export type MediaUploadJob = {
   id: string;
   fileName: string;
-  folder: 'videos' | 'animations' | 'architect-word';
+  folder: 'videos' | 'animations' | 'architect-word' | 'session-greeting' | 'session-final-word';
   status: MediaUploadJobStatus;
   returnPath: string;
   errorMessage?: string;
@@ -23,7 +23,7 @@ export type MediaUploadToast = {
 
 export type EnqueueMediaUploadInput = {
   file: File;
-  folder: 'videos' | 'animations' | 'architect-word';
+  folder: 'videos' | 'animations' | 'architect-word' | 'session-greeting' | 'session-final-word';
   returnPath: string;
   onLocalSuccess?: (result: UploadMediaResult) => void;
   onPersist?: (result: UploadMediaResult) => Promise<void>;

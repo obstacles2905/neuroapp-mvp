@@ -62,6 +62,8 @@ export class AppAuthService {
     const completed = user.onboardingCompletedAt;
     const skipped = user.onboardingSkippedAt;
     const architectWordSeen = user.architectWordSeenAt;
+    const sessionGreetingSeen = user.sessionGreetingSeenAt;
+    const sessionFinalWordSeen = user.sessionFinalWordSeenAt;
     const lastCompleted = user.activityStreakLastCompletedAt;
     return {
       id: user.id,
@@ -72,12 +74,21 @@ export class AppAuthService {
       architectWordSeenAt: architectWordSeen
         ? architectWordSeen.toISOString()
         : null,
-      needsArchitectWord:
-        completed != null && architectWordSeen == null,
+      needsArchitectWord: false,
+      sessionGreetingSeenAt: sessionGreetingSeen
+        ? sessionGreetingSeen.toISOString()
+        : null,
+      needsSessionGreeting: false,
+      sessionFinalWordSeenAt: sessionFinalWordSeen
+        ? sessionFinalWordSeen.toISOString()
+        : null,
+      needsSessionFinalWord: false,
       prioritizedSymptomIds: buildPrioritizedSymptomIdsFromRanks(
         user.onboardingSymptomRanks,
       ),
-      needsOnboarding: completed === null && skipped === null,
+      needsOnboarding:
+        sessionFinalWordSeen == null &&
+        (completed == null || skipped == null),
       activityStreakCount: this.activityStreakService.resolveEffectiveStreak(
         user.activityStreakCount,
         lastCompleted,

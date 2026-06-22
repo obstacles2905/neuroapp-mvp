@@ -92,6 +92,18 @@ function millisFromLocationX(
   return Math.round(ratio * durationMillis);
 }
 
+async function safeUnloadVideo(video: Video): Promise<void> {
+  try {
+    const status = await video.getStatusAsync();
+    if (!status.isLoaded) {
+      return;
+    }
+    await video.unloadAsync();
+  } catch {
+    /* teardown race: player never loaded or already disposed */
+  }
+}
+
 function VideoSeekBar(props: VideoSeekBarProps): JSX.Element {
   const {
     durationMillis,
@@ -206,14 +218,14 @@ export function InlineMediaPlayer({ url }: Props): JSX.Element {
     setPositionMillis(0);
     setDurationMillis(0);
     isSeekingRef.current = false;
-  }, [url]);
 
-  useEffect(() => {
-    const video = ref.current;
     return () => {
-      void video?.unloadAsync();
+      const video = ref.current;
+      if (video != null) {
+        void safeUnloadVideo(video);
+      }
     };
-  }, []);
+  }, [url]);
 
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof document === 'undefined') {

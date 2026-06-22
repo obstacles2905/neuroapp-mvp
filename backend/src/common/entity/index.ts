@@ -1,4 +1,5 @@
 export * from './architect-word-video.entity';
+export * from './session-briefing-video.entity';
 export * from './admin-join-request.entity';
 export * from './admin-user.entity';
 export * from './app-user-mnd-exercise-completion.entity';

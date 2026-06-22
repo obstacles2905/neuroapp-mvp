@@ -66,7 +66,7 @@ export class AppOnboardingController {
   @ApiBearerAuth('access-token')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
-    summary: 'Пропустить онбординг сейчас (настройка приоритетов из профиля)',
+    summary: 'Устарело: пропуск онбординга отключён',
   })
   skip(@CurrentAppUser() user: RequestAppUser): Promise<void> {
     return this.appOnboardingService.skip(user.id);

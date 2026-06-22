@@ -85,16 +85,8 @@ describe('AppOnboardingService', () => {
     );
   });
 
-  it('skip sets onboardingSkippedAt', async () => {
-    expect.assertions(2);
-    const user = { id: userId, email: 'a@a.com' };
-    mockAppUserRepo.findById.mockResolvedValue(user);
-    mockAppUserRepo.save.mockImplementation((u: unknown) => Promise.resolve(u));
-    await service.skip(userId);
-    const saved = mockAppUserRepo.save.mock.calls[0][0] as {
-      onboardingSkippedAt: Date;
-    };
-    expect(saved.onboardingSkippedAt).toBeInstanceOf(Date);
-    expect(mockAppUserRepo.save).toHaveBeenCalled();
+  it('skip is disabled', async () => {
+    expect.assertions(1);
+    await expect(service.skip(userId)).rejects.toBeInstanceOf(BadRequestException);
   });
 });

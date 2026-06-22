@@ -14,6 +14,10 @@ export type AppUserMe = {
   needsOnboarding: boolean;
   architectWordSeenAt: string | null;
   needsArchitectWord: boolean;
+  sessionGreetingSeenAt: string | null;
+  needsSessionGreeting: boolean;
+  sessionFinalWordSeenAt: string | null;
+  needsSessionFinalWord: boolean;
   /** Дни подряд (UTC) с хотя бы одним «днём активности» */
   activityStreakCount: number;
   /** YYYY-MM-DD (UTC) последнего засчитанного дня */

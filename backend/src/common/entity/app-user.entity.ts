@@ -73,6 +73,20 @@ export class AppUser {
   })
   architectWordPlaylistSnapshot: ArchitectWordPlaylistSnapshot | null;
 
+  @Column({
+    name: 'session_greeting_seen_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  sessionGreetingSeenAt: Date | null;
+
+  @Column({
+    name: 'session_final_word_seen_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  sessionFinalWordSeenAt: Date | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 

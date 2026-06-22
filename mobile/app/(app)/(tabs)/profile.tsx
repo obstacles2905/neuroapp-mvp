@@ -165,15 +165,6 @@ export default function ProfileScreen(): React.JSX.Element {
     }
   }
 
-  function onOpenOnboardingSettings(): void {
-    router.push('/(onboarding)' as Href);
-  }
-
-  const showSetupPriorities =
-    user != null &&
-    user.onboardingCompletedAt == null &&
-    !user.needsOnboarding;
-
   async function onResetStreak(): Promise<void> {
     setStreakError(null);
     setResetStreakLoading(true);
@@ -274,17 +265,6 @@ export default function ProfileScreen(): React.JSX.Element {
       <Text style={styles.caption}>
         Недавние курсы и достижения — в следующих фазах.
       </Text>
-      {isLoggedIn && user && showSetupPriorities ? (
-        <Pressable
-          style={styles.primaryOutline}
-          onPress={onOpenOnboardingSettings}
-          accessibilityLabel="Настроить приоритеты тем"
-        >
-          <Text style={styles.primaryOutlineText}>
-            Настроить приоритеты тем
-          </Text>
-        </Pressable>
-      ) : null}
       {isLoggedIn && user?.onboardingCompletedAt != null ? (
         <>
           <Pressable

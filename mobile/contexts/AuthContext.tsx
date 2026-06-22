@@ -35,7 +35,7 @@ type AuthContextValue = {
     displayName: string,
   ) => Promise<AppUserMe>;
   signOut: () => Promise<void>;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<AppUserMe | null>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -174,12 +174,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }): React
     await deleteStoredToken(SECURE_ACCESS_TOKEN_KEY);
   }, []);
 
-  const refreshUser = useCallback(async () => {
+  const refreshUser = useCallback(async (): Promise<AppUserMe | null> => {
     if (!isLoggedIn || shouldBypassAuth) {
-      return;
+      return null;
     }
     const me = await fetchAppMe();
     setUser(me);
+    return me;
   }, [isLoggedIn]);
 
   const value = useMemo<AuthContextValue>(

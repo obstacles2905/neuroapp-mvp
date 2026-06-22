@@ -1,22 +1,27 @@
 import {
   onboardingBiometricCopy,
   onboardingSubscriptionStubCopy,
-  onboardingValuePitchCopy,
 } from '@/constants/onboarding-flow.copy';
 import { useAuth } from '@/contexts/AuthContext';
 import { ApiError } from '@/lib/api';
 import { ArchitectWordFlow } from '@/features/architect-word/ArchitectWordFlow';
+import { SessionBriefingFlow } from '@/features/session-briefing/SessionBriefingFlow';
 import {
   completeArchitectWord,
   fetchArchitectWordPresentation,
 } from '@/lib/api/architect-word';
 import {
   fetchOnboardingSymptoms,
-  skipOnboarding,
   submitOnboarding,
 } from '@/lib/api/app-onboarding';
+import {
+  completeSessionBriefing,
+  fetchSessionBriefingPresentation,
+} from '@/lib/api/session-briefing';
 import type { ArchitectWordSlide } from '@/lib/api/types/architect-word.types';
+import type { AppUserMe } from '@/lib/api/types/app-auth.types';
 import type { AppSymptomListItem } from '@/lib/api/types/onboarding.types';
+import type { SessionBriefingSlide } from '@/lib/api/types/session-briefing.types';
 import type { AppTokens } from '@/constants/theme';
 import { pickLocalized } from '@/lib/i18n/pick-localized';
 import { type Href, useRouter } from 'expo-router';
@@ -36,16 +41,39 @@ import { useAppTheme } from '@/hooks/useAppTheme';
 const MAX_SELECTED = 5;
 
 type OnboardingPhase =
+  | 'session_greeting'
+  | 'symptoms_select'
+  | 'symptoms_rank'
+  | 'architect_word'
   | 'biometric_intro'
   | 'biometric_m1_about'
   | 'biometric_m1_action'
   | 'biometric_m2_about'
   | 'biometric_m2_action'
-  | 'symptoms_select'
-  | 'symptoms_rank'
-  | 'architect_word'
-  | 'value_proposition'
-  | 'subscription_stub';
+  | 'subscription_stub'
+  | 'session_final_word';
+
+function resolveInitialPhase(user: AppUserMe | null | undefined): OnboardingPhase {
+  if (user == null) {
+    return 'session_greeting';
+  }
+  if (!user.needsOnboarding && user.onboardingCompletedAt == null) {
+    return 'symptoms_select';
+  }
+  if (user.sessionGreetingSeenAt == null) {
+    return 'session_greeting';
+  }
+  if (user.onboardingCompletedAt == null) {
+    return 'symptoms_select';
+  }
+  if (user.architectWordSeenAt == null) {
+    return 'architect_word';
+  }
+  if (user.sessionFinalWordSeenAt == null) {
+    return 'biometric_intro';
+  }
+  return 'session_greeting';
+}
 
 function toggleSelection(
   id: string,
@@ -79,22 +107,31 @@ export default function OnboardingScreen(): React.JSX.Element {
   const styles = useMemo(() => createOnboardingStyles(t), [t]);
   const { refreshUser, user } = useAuth();
   const router = useRouter();
-  const [phase, setPhase] = useState<OnboardingPhase>('biometric_intro');
+  const [phase, setPhase] = useState<OnboardingPhase>('session_greeting');
+  const [phaseInitialized, setPhaseInitialized] = useState(false);
   const [symptoms, setSymptoms] = useState<AppSymptomListItem[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [rankedIds, setRankedIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [greetingSlide, setGreetingSlide] = useState<SessionBriefingSlide | null>(
+    null,
+  );
+  const [greetingLoading, setGreetingLoading] = useState(true);
+  const [finalSlide, setFinalSlide] = useState<SessionBriefingSlide | null>(null);
+  const [finalLoading, setFinalLoading] = useState(false);
   const [architectSlides, setArchitectSlides] = useState<ArchitectWordSlide[]>(
     [],
   );
   const [architectLoading, setArchitectLoading] = useState(false);
 
-  const canLeaveToApp =
+  const prioritiesOnly =
     user != null &&
     !user.needsOnboarding &&
     user.onboardingCompletedAt == null;
+
+  const canLeaveToApp = prioritiesOnly;
 
   const symptomById = useMemo(() => {
     const m = new Map<string, AppSymptomListItem>();
@@ -103,6 +140,14 @@ export default function OnboardingScreen(): React.JSX.Element {
     }
     return m;
   }, [symptoms]);
+
+  useEffect(() => {
+    if (user == null || phaseInitialized) {
+      return;
+    }
+    setPhase(resolveInitialPhase(user));
+    setPhaseInitialized(true);
+  }, [user, phaseInitialized]);
 
   useEffect(() => {
     let cancelled = false;
@@ -127,8 +172,62 @@ export default function OnboardingScreen(): React.JSX.Element {
     };
   }, []);
 
+  useEffect(() => {
+    if (phase !== 'session_greeting') {
+      return;
+    }
+    let cancelled = false;
+    setGreetingLoading(true);
+    (async () => {
+      try {
+        const data = await fetchSessionBriefingPresentation('greeting');
+        if (!cancelled) {
+          setGreetingSlide(data.slide);
+        }
+      } catch {
+        if (!cancelled) {
+          setError('Не удалось загрузить приветствие.');
+        }
+      } finally {
+        if (!cancelled) {
+          setGreetingLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== 'session_final_word') {
+      return;
+    }
+    let cancelled = false;
+    setFinalLoading(true);
+    (async () => {
+      try {
+        const data = await fetchSessionBriefingPresentation('final-word');
+        if (!cancelled) {
+          setFinalSlide(data.slide);
+        }
+      } catch {
+        if (!cancelled) {
+          setError('Не удалось загрузить финальное слово.');
+        }
+      } finally {
+        if (!cancelled) {
+          setFinalLoading(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [phase]);
+
   const skipBiometricBlock = useCallback(() => {
-    setPhase('symptoms_select');
+    setPhase('subscription_stub');
     setError(null);
   }, []);
 
@@ -159,7 +258,11 @@ export default function OnboardingScreen(): React.JSX.Element {
     try {
       await submitOnboarding(rankedIds);
       await refreshUser();
-      setPhase('value_proposition');
+      if (prioritiesOnly) {
+        router.replace('/(app)/(tabs)/profile' as Href);
+        return;
+      }
+      await beginArchitectWordFlow();
     } catch (e) {
       const msg =
         e instanceof ApiError ? e.message : 'Не удалось сохранить. Повторите.';
@@ -170,13 +273,13 @@ export default function OnboardingScreen(): React.JSX.Element {
     }
   }
 
-  const finishArchitectWordToApp = useCallback(async (): Promise<void> => {
+  const finishArchitectWordToBiometrics = useCallback(async (): Promise<void> => {
     setError(null);
     setSubmitting(true);
     try {
       await completeArchitectWord();
       await refreshUser();
-      router.replace('/(app)/(tabs)' as Href);
+      setPhase('biometric_intro');
     } catch (e) {
       const msg =
         e instanceof ApiError ? e.message : 'Не удалось завершить. Повторите.';
@@ -184,7 +287,7 @@ export default function OnboardingScreen(): React.JSX.Element {
     } finally {
       setSubmitting(false);
     }
-  }, [refreshUser, router]);
+  }, [refreshUser]);
 
   const beginArchitectWordFlow = useCallback(async (): Promise<void> => {
     setError(null);
@@ -193,7 +296,9 @@ export default function OnboardingScreen(): React.JSX.Element {
     try {
       const presentation = await fetchArchitectWordPresentation();
       if (presentation.skip) {
-        await finishArchitectWordToApp();
+        await completeArchitectWord();
+        await refreshUser();
+        setPhase('biometric_intro');
         return;
       }
       setArchitectSlides(presentation.slides);
@@ -208,29 +313,81 @@ export default function OnboardingScreen(): React.JSX.Element {
       setArchitectLoading(false);
       setSubmitting(false);
     }
-  }, [finishArchitectWordToApp]);
+  }, [refreshUser]);
 
-  async function onSkipFullOnboarding(): Promise<void> {
+  useEffect(() => {
+    if (
+      phase !== 'architect_word' ||
+      architectSlides.length > 0 ||
+      architectLoading ||
+      user?.onboardingCompletedAt == null ||
+      user?.architectWordSeenAt != null
+    ) {
+      return;
+    }
+    void beginArchitectWordFlow();
+  }, [
+    phase,
+    architectSlides.length,
+    architectLoading,
+    user,
+    beginArchitectWordFlow,
+  ]);
+
+  const onCompleteGreeting = useCallback(async (): Promise<void> => {
     setError(null);
     setSubmitting(true);
     try {
-      await skipOnboarding();
+      await completeSessionBriefing('greeting');
       await refreshUser();
-      router.replace('/(app)/(tabs)' as Href);
+      setPhase('symptoms_select');
     } catch (e) {
       const msg =
-        e instanceof ApiError ? e.message : 'Не удалось пропустить. Повторите.';
+        e instanceof ApiError ? e.message : 'Не удалось продолжить. Повторите.';
       setError(msg);
     } finally {
       setSubmitting(false);
     }
-  }
+  }, [refreshUser]);
+
+  const onCompleteFinalWord = useCallback(async (): Promise<void> => {
+    setError(null);
+    setSubmitting(true);
+    try {
+      await completeSessionBriefing('final-word');
+      await refreshUser();
+      router.replace('/(app)/(tabs)' as Href);
+    } catch (e) {
+      const msg =
+        e instanceof ApiError ? e.message : 'Не удалось завершить. Повторите.';
+      setError(msg);
+    } finally {
+      setSubmitting(false);
+    }
+  }, [refreshUser, router]);
 
   function finishOnboardingToApp(): void {
-    void beginArchitectWordFlow();
+    setPhase('session_final_word');
+    setError(null);
   }
 
-  if (loading && phase.startsWith('symptoms')) {
+  if (phase === 'session_greeting') {
+    return (
+      <SessionBriefingFlow
+        title="Приветствие"
+        description="Короткое представление вашего проводника по программе."
+        emptyMessage="Видео скоро появится. Нажмите «Дальше», чтобы продолжить."
+        slide={greetingSlide}
+        loading={greetingLoading}
+        submitting={submitting}
+        error={error}
+        onFinish={onCompleteGreeting}
+        finishLabel="Дальше"
+      />
+    );
+  }
+
+  if (loading && (phase === 'symptoms_select' || phase === 'symptoms_rank')) {
     return (
       <View style={[styles.centered, { backgroundColor: t.background }]}>
         <ActivityIndicator color={t.tint} size="large" />
@@ -267,7 +424,7 @@ export default function OnboardingScreen(): React.JSX.Element {
           <Text style={styles.primaryText}>Пройти замеры</Text>
         </Pressable>
         <Pressable style={styles.ghost} onPress={skipBiometricBlock}>
-          <Text style={styles.ghostText}>Пропустить, перейти к симптомам</Text>
+          <Text style={styles.ghostText}>Пропустить, перейти к подписке</Text>
         </Pressable>
       </ScrollView>
     );
@@ -350,7 +507,7 @@ export default function OnboardingScreen(): React.JSX.Element {
         screenTitle={onboardingBiometricCopy.m2Title}
         onBack={() => setPhase('biometric_m2_about')}
         onComplete={() => {
-          setPhase('symptoms_select');
+          setPhase('subscription_stub');
           setError(null);
         }}
       />
@@ -364,25 +521,25 @@ export default function OnboardingScreen(): React.JSX.Element {
         loading={architectLoading}
         submitting={submitting}
         error={error}
-        onFinish={finishArchitectWordToApp}
-        finishLabel="Продолжить в приложение"
+        onFinish={finishArchitectWordToBiometrics}
+        finishLabel="Дальше"
       />
     );
   }
 
-  if (phase === 'value_proposition') {
+  if (phase === 'session_final_word') {
     return (
-      <ScrollView style={{ backgroundColor: t.background, flex: 1 }} contentContainerStyle={styles.scroll}>
-        <Text style={styles.blockTitle}>{onboardingValuePitchCopy.title}</Text>
-        <Text style={styles.lead}>{onboardingValuePitchCopy.body}</Text>
-        <Text style={styles.leadMuted}>{onboardingValuePitchCopy.foot}</Text>
-        <Pressable
-          style={styles.primary}
-          onPress={() => setPhase('subscription_stub')}
-        >
-          <Text style={styles.primaryText}>Дальше</Text>
-        </Pressable>
-      </ScrollView>
+      <SessionBriefingFlow
+        title="Финальное слово"
+        description="Итоговое обращение перед началом работы с программой."
+        emptyMessage="Видео скоро появится. Нажмите «Дальше», чтобы войти в приложение."
+        slide={finalSlide}
+        loading={finalLoading}
+        submitting={submitting}
+        error={error}
+        onFinish={onCompleteFinalWord}
+        finishLabel="Продолжить в приложение"
+      />
     );
   }
 
@@ -489,25 +646,6 @@ export default function OnboardingScreen(): React.JSX.Element {
         >
           <Text style={styles.primaryText}>Далее: расставить по важности</Text>
         </Pressable>
-        {canLeaveToApp ? null : (
-          <>
-            <Pressable
-              style={styles.ghost}
-              onPress={onSkipFullOnboarding}
-              disabled={submitting}
-              accessibilityLabel="Пропустить настройку приоритетов"
-            >
-              {submitting ? (
-                <ActivityIndicator color={t.tint} />
-              ) : (
-                <Text style={styles.ghostText}>Пока пропустить, решу позже</Text>
-              )}
-            </Pressable>
-            <Text style={styles.ghostHint}>
-              Настроить приоритеты можно позже в разделе «Профиль».
-            </Text>
-          </>
-        )}
       </ScrollView>
     );
   }
@@ -590,20 +728,6 @@ export default function OnboardingScreen(): React.JSX.Element {
           <Text style={styles.primaryText}>Сохранить и продолжить</Text>
         )}
       </Pressable>
-      {canLeaveToApp ? null : (
-        <Pressable
-          style={styles.ghost}
-          onPress={onSkipFullOnboarding}
-          disabled={submitting}
-          accessibilityLabel="Пропустить"
-        >
-          {submitting ? (
-            <ActivityIndicator color={t.tint} />
-          ) : (
-            <Text style={styles.ghostText}>Пока пропустить, решу позже</Text>
-          )}
-        </Pressable>
-      )}
     </ScrollView>
   );
 }

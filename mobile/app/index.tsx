@@ -1,4 +1,5 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { getSessionContinuationHref } from '@/lib/navigation/session-continuation';
 import { type Href, Redirect } from 'expo-router';
 
 /**
@@ -19,8 +20,9 @@ export default function Index(): React.JSX.Element | null {
   if (user.needsOnboarding) {
     return <Redirect href={'/(onboarding)' as Href} />;
   }
-  if (user.needsArchitectWord) {
-    return <Redirect href={'/(app)/architect-word' as Href} />;
+  const nextHref = getSessionContinuationHref(user);
+  if (nextHref !== '/(app)/(tabs)') {
+    return <Redirect href={nextHref} />;
   }
   return <Redirect href="/(app)/(tabs)" />;
 }

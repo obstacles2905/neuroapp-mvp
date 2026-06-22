@@ -6,7 +6,7 @@ export type UploadMediaResult = {
 
 export type UploadLessonMediaInput = {
   file: File;
-  folder: 'videos' | 'animations' | 'architect-word';
+  folder: 'videos' | 'animations' | 'architect-word' | 'session-greeting' | 'session-final-word';
 };
 
 export type PresignMediaUploadPayload = {

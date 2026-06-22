@@ -57,13 +57,10 @@ export class AppOnboardingService {
     await this.appUserRepository.save(user);
   }
 
-  async skip(userId: string): Promise<void> {
-    const user = await this.appUserRepository.findById(userId);
-    if (!user) {
-      throw new UnauthorizedException();
-    }
-    user.onboardingSkippedAt = new Date();
-    await this.appUserRepository.save(user);
+  async skip(_userId: string): Promise<void> {
+    throw new BadRequestException(
+      'Выбор и ранжирование симптомов обязательны для продолжения',
+    );
   }
 
   async clearForReplay(userId: string): Promise<void> {
@@ -76,6 +73,8 @@ export class AppOnboardingService {
     user.onboardingSkippedAt = null;
     user.architectWordSeenAt = null;
     user.architectWordPlaylistSnapshot = null;
+    user.sessionGreetingSeenAt = null;
+    user.sessionFinalWordSeenAt = null;
     await this.appUserRepository.save(user);
   }
 }

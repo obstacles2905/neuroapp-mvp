@@ -2,13 +2,15 @@
 
 import { logoutAction } from '@/app/actions/auth';
 import type { AdminMe } from '@/lib/types/me';
-import { BrainCircuit, LayoutDashboard, UserPlus, Users } from 'lucide-react';
+import { BrainCircuit, HandHeart, LayoutDashboard, MessageCircleHeart, UserPlus, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const baseNav = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/briefing/greeting', label: 'Приветствие', icon: HandHeart },
+  { href: '/briefing/final-word', label: 'Финальное слово', icon: MessageCircleHeart },
   { href: '/mnd', label: 'MND Protocol', icon: BrainCircuit },
   { href: '/users', label: 'Users', icon: Users },
 ] as const;

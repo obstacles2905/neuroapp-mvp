@@ -6,6 +6,7 @@ import {
   fetchArchitectWordPresentation,
 } from '@/lib/api/architect-word';
 import type { ArchitectWordSlide } from '@/lib/api/types/architect-word.types';
+import { getSessionContinuationHref } from '@/lib/navigation/session-continuation';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -67,9 +68,13 @@ export default function ArchitectWordScreen(): React.JSX.Element {
     try {
       if (!replay) {
         await completeArchitectWord();
-        await refreshUser();
       }
-      router.replace('/(app)/(tabs)' as Href);
+      const me = await refreshUser();
+      const href =
+        replay || me == null
+          ? ('/(app)/(tabs)' as Href)
+          : getSessionContinuationHref(me);
+      router.replace(href);
     } catch (e) {
       const msg =
         e instanceof ApiError ? e.message : 'Не удалось завершить. Повторите.';
