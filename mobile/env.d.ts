@@ -6,5 +6,7 @@ declare namespace NodeJS {
   interface ProcessEnv {
     EXPO_PUBLIC_API_URL?: string;
     EXPO_PUBLIC_DEV_BYPASS_AUTH?: string;
+    /** If true: only auth + working biometrics (no onboarding / lessons / profile). */
+    EXPO_PUBLIC_BIOMETRICS_ONLY?: string;
   }
 }

@@ -11,7 +11,8 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://backend-production-2829.up.railway.app",
-        "EXPO_PUBLIC_DEV_BYPASS_AUTH": "false"
+        "EXPO_PUBLIC_DEV_BYPASS_AUTH": "false",
+        "EXPO_PUBLIC_BIOMETRICS_ONLY": "true"
       }
     }
   }

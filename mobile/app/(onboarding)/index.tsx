@@ -49,8 +49,6 @@ type OnboardingPhase =
   | 'symptoms_rank'
   | 'architect_word'
   | 'biometric_intro'
-  | 'biometric_m1_about'
-  | 'biometric_m1_action'
   | 'biometric_m2_about'
   | 'biometric_m2_action'
   | 'biometric_voice_intro'
@@ -235,11 +233,6 @@ export default function OnboardingScreen(): React.JSX.Element {
 
   const skipBiometricBlock = useCallback(() => {
     setPhase('subscription_stub');
-    setError(null);
-  }, []);
-
-  const skipOnboardingM1 = useCallback(() => {
-    setPhase('biometric_m2_about');
     setError(null);
   }, []);
 
@@ -445,7 +438,7 @@ export default function OnboardingScreen(): React.JSX.Element {
         <Pressable
           style={styles.primary}
           onPress={() => {
-            setPhase('biometric_m1_about');
+            setPhase('biometric_m2_about');
             setError(null);
           }}
         >
@@ -453,61 +446,6 @@ export default function OnboardingScreen(): React.JSX.Element {
         </Pressable>
         <Pressable style={styles.ghost} onPress={skipBiometricBlock}>
           <Text style={styles.ghostText}>Пропустить, перейти к подписке</Text>
-        </Pressable>
-      </ScrollView>
-    );
-  }
-
-  if (phase === 'biometric_m1_about') {
-    return (
-      <ScrollView style={{ backgroundColor: t.background, flex: 1 }} contentContainerStyle={styles.scroll}>
-        <Text style={styles.blockTitle}>{onboardingBiometricCopy.m1Title}</Text>
-        <Text style={styles.lead}>{onboardingBiometricCopy.m1About}</Text>
-        <Pressable
-          style={styles.primary}
-          onPress={() => setPhase('biometric_m1_action')}
-        >
-          <Text style={styles.primaryText}>Дальше</Text>
-        </Pressable>
-        <Pressable
-          style={styles.secondary}
-          onPress={() => setPhase('biometric_intro')}
-        >
-          <Text style={styles.secondaryText}>← Назад</Text>
-        </Pressable>
-        <Pressable style={styles.ghost} onPress={skipOnboardingM1}>
-          <Text style={styles.ghostText}>{repeatBiometricCopy.skipM1}</Text>
-        </Pressable>
-      </ScrollView>
-    );
-  }
-
-  if (phase === 'biometric_m1_action') {
-    return (
-      <ScrollView style={{ backgroundColor: t.background, flex: 1 }} contentContainerStyle={styles.scroll}>
-        <Text style={styles.blockTitle}>{onboardingBiometricCopy.m1Title}</Text>
-        <Text style={styles.instructionBox}>
-          {onboardingBiometricCopy.m1Instruction}
-        </Text>
-        <View style={styles.mockBioArea}>
-          <Text style={styles.mockBioHint}>
-            Место для модуля камеры / ППГ (появится в био-обновлении)
-          </Text>
-        </View>
-        <Pressable
-          style={styles.primary}
-          onPress={() => setPhase('biometric_m2_about')}
-        >
-          <Text style={styles.primaryText}>Готово — к замеру 2</Text>
-        </Pressable>
-        <Pressable
-          style={styles.secondary}
-          onPress={() => setPhase('biometric_m1_about')}
-        >
-          <Text style={styles.secondaryText}>← Назад</Text>
-        </Pressable>
-        <Pressable style={styles.ghost} onPress={skipOnboardingM1}>
-          <Text style={styles.ghostText}>{repeatBiometricCopy.skipM1}</Text>
         </Pressable>
       </ScrollView>
     );
@@ -526,7 +464,7 @@ export default function OnboardingScreen(): React.JSX.Element {
         </Pressable>
         <Pressable
           style={styles.secondary}
-          onPress={() => setPhase('biometric_m1_action')}
+          onPress={() => setPhase('biometric_intro')}
         >
           <Text style={styles.secondaryText}>← Назад</Text>
         </Pressable>
@@ -910,24 +848,6 @@ function createOnboardingStyles(t: AppTokens) {
       fontSize: 14,
       lineHeight: 20,
       marginTop: 8,
-    },
-    mockBioArea: {
-      alignItems: 'center',
-      backgroundColor: t.backgroundMuted,
-      borderColor: t.border,
-      borderRadius: 16,
-      borderStyle: 'dashed',
-      borderWidth: 1,
-      justifyContent: 'center',
-      marginVertical: 16,
-      minHeight: 140,
-      padding: 16,
-    },
-    mockBioHint: {
-      color: t.textMuted,
-      fontSize: 14,
-      lineHeight: 20,
-      textAlign: 'center',
     },
     primary: {
       alignItems: 'center',

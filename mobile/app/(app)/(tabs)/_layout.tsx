@@ -8,6 +8,7 @@ import { AnimatedTabBarIcon } from '@/components/navigation/AnimatedTabBarIcon';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import { tabTransitionSpec } from '@/constants/navigation-motion';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { isBiometricsOnlyMode } from '@/lib/config/feature-flags';
 
 export default function AppTabsLayout(): React.JSX.Element {
   const t = useAppTheme();
@@ -65,10 +66,15 @@ export default function AppTabsLayout(): React.JSX.Element {
   }, [t, headerShown, insets.bottom]);
 
   return (
-    <Tabs detachInactiveScreens={false} screenOptions={screenOptions}>
+    <Tabs
+      detachInactiveScreens={false}
+      initialRouteName={isBiometricsOnlyMode ? 'biometrics' : 'index'}
+      screenOptions={screenOptions}
+    >
       <Tabs.Screen
         name="index"
         options={{
+          href: isBiometricsOnlyMode ? null : undefined,
           title: 'Учёба',
           tabBarIcon: ({ focused }) => (
             <AnimatedTabBarIcon
@@ -83,6 +89,7 @@ export default function AppTabsLayout(): React.JSX.Element {
       <Tabs.Screen
         name="now"
         options={{
+          href: isBiometricsOnlyMode ? null : undefined,
           title: 'Тревожная кнопка',
           tabBarLabel: 'SOS',
           tabBarIcon: ({ focused }) => (
@@ -113,6 +120,7 @@ export default function AppTabsLayout(): React.JSX.Element {
       <Tabs.Screen
         name="jam"
         options={{
+          href: isBiometricsOnlyMode ? null : undefined,
           title: 'Джем',
           tabBarIcon: ({ focused }) => (
             <AnimatedTabBarIcon
@@ -127,6 +135,7 @@ export default function AppTabsLayout(): React.JSX.Element {
       <Tabs.Screen
         name="profile"
         options={{
+          href: isBiometricsOnlyMode ? null : undefined,
           title: 'Профиль',
           tabBarIcon: ({ focused }) => (
             <AnimatedTabBarIcon

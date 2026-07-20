@@ -1,5 +1,9 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { getSessionContinuationHref } from '@/lib/navigation/session-continuation';
+import { isBiometricsOnlyMode } from '@/lib/config/feature-flags';
+import {
+  BIOMETRICS_ONLY_HREF,
+  getSessionContinuationHref,
+} from '@/lib/navigation/session-continuation';
 import { type Href, Redirect } from 'expo-router';
 
 /**
@@ -13,6 +17,9 @@ export default function Index(): React.JSX.Element | null {
   }
   if (!isLoggedIn) {
     return <Redirect href="/(auth)/login" />;
+  }
+  if (isBiometricsOnlyMode) {
+    return <Redirect href={BIOMETRICS_ONLY_HREF} />;
   }
   if (user == null) {
     return <Redirect href="/(app)/(tabs)" />;

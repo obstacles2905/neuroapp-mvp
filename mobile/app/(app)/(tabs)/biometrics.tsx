@@ -23,8 +23,6 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 
 type BioRepeatPhase =
   | 'intro'
-  | 'm1_about'
-  | 'm1_action'
   | 'm2_about'
   | 'm2_action'
   | 'history'
@@ -56,7 +54,6 @@ export default function BiometricsRepeatScreen(): React.JSX.Element {
   };
 
   const isFullCycle = flowMode === 'full';
-  const skipM1 = (): void => setPhase('m2_about');
   const skipPosture = (): void => setPhase('voice_intro');
   const skipVoice = (): void => setPhase('face_intro');
   const skipFace = (): void => setPhase('done');
@@ -259,62 +256,11 @@ export default function BiometricsRepeatScreen(): React.JSX.Element {
           style={bf.secondary}
           onPress={() => {
             setFlowMode('full');
-            setPhase('m1_about');
+            setPhase('m2_about');
           }}
         >
           <Text style={bf.secondaryText}>{repeatBiometricCopy.ctaStart}</Text>
         </Pressable>
-      </ScrollView>
-    );
-  }
-
-  if (phase === 'm1_about') {
-    return (
-      <ScrollView
-        contentContainerStyle={bf.scroll}
-        style={{ backgroundColor: t.background, flex: 1 }}
-      >
-        <Text style={bf.blockTitle}>{onboardingBiometricCopy.m1Title}</Text>
-        <Text style={bf.lead}>{onboardingBiometricCopy.m1About}</Text>
-        <Pressable style={bf.primary} onPress={() => setPhase('m1_action')}>
-          <Text style={bf.primaryText}>Дальше</Text>
-        </Pressable>
-        <Pressable style={bf.secondary} onPress={() => setPhase('intro')}>
-          <Text style={bf.secondaryText}>← Назад</Text>
-        </Pressable>
-        {isFullCycle ? (
-          <Pressable style={bf.ghost} onPress={skipM1}>
-            <Text style={bf.ghostText}>{repeatBiometricCopy.skipM1}</Text>
-          </Pressable>
-        ) : null}
-      </ScrollView>
-    );
-  }
-
-  if (phase === 'm1_action') {
-    return (
-      <ScrollView
-        contentContainerStyle={bf.scroll}
-        style={{ backgroundColor: t.background, flex: 1 }}
-      >
-        <Text style={bf.blockTitle}>{onboardingBiometricCopy.m1Title}</Text>
-        <Text style={bf.instructionBox}>{onboardingBiometricCopy.m1Instruction}</Text>
-        <View style={bf.mockBioArea}>
-          <Text style={bf.mockBioHint}>
-            Место для модуля камеры / ППГ (появится в био-обновлении)
-          </Text>
-        </View>
-        <Pressable style={bf.primary} onPress={() => setPhase('m2_about')}>
-          <Text style={bf.primaryText}>Готово — к замеру 2</Text>
-        </Pressable>
-        <Pressable style={bf.secondary} onPress={() => setPhase('m1_about')}>
-          <Text style={bf.secondaryText}>← Назад</Text>
-        </Pressable>
-        {isFullCycle ? (
-          <Pressable style={bf.ghost} onPress={skipM1}>
-            <Text style={bf.ghostText}>{repeatBiometricCopy.skipM1}</Text>
-          </Pressable>
-        ) : null}
       </ScrollView>
     );
   }
@@ -333,11 +279,7 @@ export default function BiometricsRepeatScreen(): React.JSX.Element {
         <Pressable
           style={bf.secondary}
           onPress={() => {
-            if (flowMode === 'single_posture') {
-              returnToHub();
-              return;
-            }
-            setPhase('m1_action');
+            returnToHub();
           }}
         >
           <Text style={bf.secondaryText}>← Назад</Text>
@@ -375,11 +317,11 @@ export default function BiometricsRepeatScreen(): React.JSX.Element {
     >
       <Text style={bf.blockTitle}>{repeatBiometricCopy.doneTitle}</Text>
       <Text style={bf.lead}>{repeatBiometricCopy.doneBody}</Text>
-      <Pressable style={bf.secondary} onPress={() => setPhase('history')}>
-        <Text style={bf.secondaryText}>{repeatBiometricCopy.historyCta}</Text>
+      <Pressable style={bf.primary} onPress={() => setPhase('history')}>
+        <Text style={bf.primaryText}>{repeatBiometricCopy.historyCta}</Text>
       </Pressable>
-      <Pressable style={bf.primary} onPress={returnToHub}>
-        <Text style={bf.primaryText}>{repeatBiometricCopy.doneCta}</Text>
+      <Pressable style={bf.secondary} onPress={returnToHub}>
+        <Text style={bf.secondaryText}>{repeatBiometricCopy.doneCta}</Text>
       </Pressable>
     </ScrollView>
   );
