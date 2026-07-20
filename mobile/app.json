@@ -48,12 +48,20 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Neuro запрашивает доступ к галерее только для отладки пайплайна позы на этом устройстве.",
+          "photosPermission": "Neuro запрашивает доступ к галерее для замера мимики и отладки биометрических пайплайнов на устройстве.",
           "microphonePermission": false
         }
       ],
       [
         "react-native-mediapipe-posedetection",
+        {
+          "assetsPaths": [
+            "./assets/models"
+          ]
+        }
+      ],
+      [
+        "neuro-face-landmarker",
         {
           "assetsPaths": [
             "./assets/models"

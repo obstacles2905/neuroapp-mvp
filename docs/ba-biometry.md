@@ -35,13 +35,14 @@
 - **Для нас:** Идеально для диагностики «социального панциря».
 - **Ссылка:** [openSMILE](https://www.audeering.com/research/opensmile/)
 
-**5\. Лицо и Мимика: DeepFace**
+**5\. Лицо и Мимика: Google MediaPipe Face Landmarker ВАЖНО**
 
-Легкая библиотека для анализа атрибутов лица.
+Тот же вендор и тот же on-device подход, что и для позы (п.1). DeepFace рассматривался на этапе обзора, но **отклонён** — устаревшая FER2013-модель, нет мобильного порта, GDPR-риски при облачном использовании. См. [`biometry-face-emotion-system-design.md`](./biometry-face-emotion-system-design.md).
 
-- **Что умеет:** Распознает базовые эмоции (гнев, страх, радость, нейтраль).
-- **Для нас:** Если у Джона «маска» на лице (отсутствие мимики), DeepFace это зафиксирует.
-- **Ссылка:** [DeepFace](https://github.com/serengil/deepface)
+- **Что умеет:** 52 blendshape-коэффициента мимики (улыбка, нахмуренные брови, напряжение челюсти и т.д.), лендмарки лица, on-device.
+- **Для нас:** Объективно измеряем гипомимию («маску»), асимметрию и напряжение челюсти — ключевые маркеры для симптома «Социальный камуфляж» (MND ID 12, стек ST-2).
+- **Кроссплатформенность:** iOS (Swift) и Android (Kotlin), через нативный TurboModule по образцу уже используемого Pose Landmarker.
+- **Ссылка:** [MediaPipe Face Landmarker](https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker)
 
 **Итоговая таблица «Бесплатного стека»:**
 
@@ -51,4 +52,4 @@
 | **Пульс (rPPG)**   | rPPG-Toolbox    | MIT / Open    | iOS, Android (через TFLite) |
 | **Глаза / Зрачки** | OpenCV / PyGaze | BSD           | Все                         |
 | **Голос**          | openSMILE       | Open Academic | iOS, Android (C++)          |
-| **Эмоции лица**    | DeepFace        | MIT           | Все                         |
+| **Мимика лица**    | MediaPipe       | Apache 2.0    | iOS, Android                |

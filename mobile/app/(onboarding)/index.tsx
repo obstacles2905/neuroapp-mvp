@@ -1,6 +1,7 @@
 import {
   onboardingBiometricCopy,
   onboardingSubscriptionStubCopy,
+  repeatBiometricCopy,
 } from '@/constants/onboarding-flow.copy';
 import { useAuth } from '@/contexts/AuthContext';
 import { ApiError } from '@/lib/api';
@@ -36,6 +37,8 @@ import {
 } from 'react-native';
 
 import { PostureBurstCapture } from '@/features/biometrics/PostureBurstCapture';
+import { FaceExpressionCaptureFlow } from '@/features/biometrics/FaceExpressionCaptureFlow';
+import { VoiceCaptureFlow } from '@/features/biometrics/VoiceCaptureFlow';
 import { useAppTheme } from '@/hooks/useAppTheme';
 
 const MAX_SELECTED = 5;
@@ -50,6 +53,10 @@ type OnboardingPhase =
   | 'biometric_m1_action'
   | 'biometric_m2_about'
   | 'biometric_m2_action'
+  | 'biometric_voice_intro'
+  | 'biometric_voice_capture'
+  | 'biometric_face_intro'
+  | 'biometric_face_capture'
   | 'subscription_stub'
   | 'session_final_word';
 
@@ -105,7 +112,7 @@ function moveItem(ids: string[], index: number, dir: -1 | 1): string[] {
 export default function OnboardingScreen(): React.JSX.Element {
   const t = useAppTheme();
   const styles = useMemo(() => createOnboardingStyles(t), [t]);
-  const { refreshUser, user } = useAuth();
+  const { refreshUser, user, isLoggedIn } = useAuth();
   const router = useRouter();
   const [phase, setPhase] = useState<OnboardingPhase>('session_greeting');
   const [phaseInitialized, setPhaseInitialized] = useState(false);
@@ -230,6 +237,27 @@ export default function OnboardingScreen(): React.JSX.Element {
     setPhase('subscription_stub');
     setError(null);
   }, []);
+
+  const skipOnboardingM1 = useCallback(() => {
+    setPhase('biometric_m2_about');
+    setError(null);
+  }, []);
+
+  const goToOnboardingVoice = useCallback(() => {
+    setPhase('biometric_voice_intro');
+    setError(null);
+  }, []);
+
+  const goToOnboardingFace = useCallback(() => {
+    setPhase('biometric_face_intro');
+    setError(null);
+  }, []);
+
+  const skipOnboardingPosture = goToOnboardingVoice;
+
+  const skipOnboardingVoice = goToOnboardingFace;
+
+  const skipOnboardingFace = skipBiometricBlock;
 
   const onToggleCategory = useCallback((id: string) => {
     setSelectedIds((prev) => toggleSelection(id, prev, MAX_SELECTED));
@@ -447,6 +475,9 @@ export default function OnboardingScreen(): React.JSX.Element {
         >
           <Text style={styles.secondaryText}>← Назад</Text>
         </Pressable>
+        <Pressable style={styles.ghost} onPress={skipOnboardingM1}>
+          <Text style={styles.ghostText}>{repeatBiometricCopy.skipM1}</Text>
+        </Pressable>
       </ScrollView>
     );
   }
@@ -475,6 +506,9 @@ export default function OnboardingScreen(): React.JSX.Element {
         >
           <Text style={styles.secondaryText}>← Назад</Text>
         </Pressable>
+        <Pressable style={styles.ghost} onPress={skipOnboardingM1}>
+          <Text style={styles.ghostText}>{repeatBiometricCopy.skipM1}</Text>
+        </Pressable>
       </ScrollView>
     );
   }
@@ -496,6 +530,9 @@ export default function OnboardingScreen(): React.JSX.Element {
         >
           <Text style={styles.secondaryText}>← Назад</Text>
         </Pressable>
+        <Pressable style={styles.ghost} onPress={skipOnboardingPosture}>
+          <Text style={styles.ghostText}>{repeatBiometricCopy.skipPosture}</Text>
+        </Pressable>
       </ScrollView>
     );
   }
@@ -507,10 +544,75 @@ export default function OnboardingScreen(): React.JSX.Element {
         screenTitle={onboardingBiometricCopy.m2Title}
         onBack={() => setPhase('biometric_m2_about')}
         onComplete={() => {
-          setPhase('subscription_stub');
-          setError(null);
+          goToOnboardingVoice();
         }}
+        onSkip={skipOnboardingPosture}
       />
+    );
+  }
+
+  if (phase === 'biometric_voice_capture') {
+    return (
+      <VoiceCaptureFlow
+        enableRemoteSync={isLoggedIn}
+        screenTitle={repeatBiometricCopy.voiceIntroTitle}
+        onBack={() => setPhase('biometric_voice_intro')}
+        onComplete={() => {
+          goToOnboardingFace();
+        }}
+        onSkip={skipOnboardingVoice}
+      />
+    );
+  }
+
+  if (phase === 'biometric_voice_intro') {
+    return (
+      <ScrollView style={{ backgroundColor: t.background, flex: 1 }} contentContainerStyle={styles.scroll}>
+        <Text style={styles.blockTitle}>{repeatBiometricCopy.voiceIntroTitle}</Text>
+        <Text style={styles.lead}>{repeatBiometricCopy.voiceIntroBody}</Text>
+        <Text style={styles.privacyBox}>{onboardingBiometricCopy.privacyNote}</Text>
+        <Pressable style={styles.primary} onPress={() => setPhase('biometric_voice_capture')}>
+          <Text style={styles.primaryText}>{repeatBiometricCopy.voiceCtaStart}</Text>
+        </Pressable>
+        <Pressable style={styles.secondary} onPress={() => setPhase('biometric_m2_about')}>
+          <Text style={styles.secondaryText}>← Назад</Text>
+        </Pressable>
+        <Pressable style={styles.ghost} onPress={skipOnboardingVoice}>
+          <Text style={styles.ghostText}>{repeatBiometricCopy.skipVoice}</Text>
+        </Pressable>
+      </ScrollView>
+    );
+  }
+
+  if (phase === 'biometric_face_capture') {
+    return (
+      <FaceExpressionCaptureFlow
+        screenTitle={repeatBiometricCopy.faceIntroTitle}
+        onBack={() => setPhase('biometric_face_intro')}
+        onComplete={() => {
+          skipBiometricBlock();
+        }}
+        onSkip={skipOnboardingFace}
+      />
+    );
+  }
+
+  if (phase === 'biometric_face_intro') {
+    return (
+      <ScrollView style={{ backgroundColor: t.background, flex: 1 }} contentContainerStyle={styles.scroll}>
+        <Text style={styles.blockTitle}>{repeatBiometricCopy.faceIntroTitle}</Text>
+        <Text style={styles.lead}>{repeatBiometricCopy.faceIntroBody}</Text>
+        <Text style={styles.privacyBox}>{repeatBiometricCopy.faceConsentLead}</Text>
+        <Pressable style={styles.primary} onPress={() => setPhase('biometric_face_capture')}>
+          <Text style={styles.primaryText}>{repeatBiometricCopy.faceCtaStart}</Text>
+        </Pressable>
+        <Pressable style={styles.secondary} onPress={() => setPhase('biometric_voice_intro')}>
+          <Text style={styles.secondaryText}>← Назад</Text>
+        </Pressable>
+        <Pressable style={styles.ghost} onPress={skipOnboardingFace}>
+          <Text style={styles.ghostText}>{repeatBiometricCopy.skipFace}</Text>
+        </Pressable>
+      </ScrollView>
     );
   }
 

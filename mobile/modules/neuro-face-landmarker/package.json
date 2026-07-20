@@ -1,0 +1,40 @@
+{
+  "name": "neuro-face-landmarker",
+  "version": "0.1.0",
+  "description": "MediaPipe Face Landmarker TurboModule for Neuro (blendshapes on-device)",
+  "license": "MIT",
+  "main": "src/index.ts",
+  "react-native": "src/index.ts",
+  "files": [
+    "src",
+    "android",
+    "ios",
+    "app.plugin.js",
+    "NeuroFaceLandmarker.podspec"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./app.plugin.js": "./app.plugin.js"
+  },
+  "peerDependencies": {
+    "@expo/config-plugins": ">=7",
+    "react": ">=18",
+    "react-native": ">=0.74.0"
+  },
+  "peerDependenciesMeta": {
+    "@expo/config-plugins": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "fs-extra": "^11.2.0"
+  },
+  "codegenConfig": {
+    "name": "NeuroFaceLandmarkerSpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "com.neurofacelandmarker"
+    }
+  }
+}

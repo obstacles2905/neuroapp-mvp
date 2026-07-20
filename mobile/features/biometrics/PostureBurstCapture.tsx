@@ -55,6 +55,7 @@ const CAPTURE_HINT_PROFILE =
 export type PostureBurstCaptureProps = {
   onBack: () => void;
   onComplete: (result: PoseDualViewSessionResult) => void;
+  onSkip?: (() => void) | undefined;
   screenTitle: string;
   hideParentTabBar?: boolean;
 };
@@ -92,6 +93,7 @@ async function captureBurstToCache(
 export function PostureBurstCapture({
   onBack,
   onComplete,
+  onSkip,
   screenTitle,
   hideParentTabBar = true,
 }: PostureBurstCaptureProps): JSX.Element {
@@ -369,6 +371,11 @@ export function PostureBurstCapture({
         <Pressable style={bf.secondary} onPress={onBack}>
           <Text style={bf.secondaryText}>← Назад</Text>
         </Pressable>
+        {onSkip != null ? (
+          <Pressable style={bf.ghost} onPress={onSkip}>
+            <Text style={bf.ghostText}>Пропустить замер осанки</Text>
+          </Pressable>
+        ) : null}
       </SafeAreaView>
     );
   }
@@ -472,13 +479,20 @@ export function PostureBurstCapture({
           <Text numberOfLines={1} style={styles.topTitle}>
             {`${screenTitle} · ${cameraStepLabel}`}
           </Text>
-          <Pressable
-            hitSlop={8}
-            style={styles.topHelpBtn}
-            onPress={() => Alert.alert('Как снять', hintText)}
-          >
-            <Text style={styles.topHelpLabel}>Подсказка</Text>
-          </Pressable>
+          <View style={styles.topActions}>
+            {onSkip != null ? (
+              <Pressable hitSlop={8} style={styles.topSkipBtn} onPress={onSkip}>
+                <Text style={styles.topSkipLabel}>Пропустить</Text>
+              </Pressable>
+            ) : null}
+            <Pressable
+              hitSlop={8}
+              style={styles.topHelpBtn}
+              onPress={() => Alert.alert('Как снять', hintText)}
+            >
+              <Text style={styles.topHelpLabel}>Подсказка</Text>
+            </Pressable>
+          </View>
         </View>
       </SafeAreaView>
 
@@ -530,6 +544,15 @@ export function PostureBurstCapture({
             </Text>
           </Pressable>
         ) : null}
+        {onSkip != null ? (
+          <Pressable
+            disabled={busy || countdownSec != null}
+            style={styles.bottomSkipOnDark}
+            onPress={onSkip}
+          >
+            <Text style={styles.bottomSkipText}>Пропустить замер осанки</Text>
+          </Pressable>
+        ) : null}
       </SafeAreaView>
     </View>
   );
@@ -568,6 +591,25 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  topActions: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexShrink: 0,
+    gap: 8,
+  },
+  topSkipBtn: {
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    borderColor: 'rgba(255,255,255,0.35)',
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  topSkipLabel: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
   },
   topHelpBtn: {
     backgroundColor: 'rgba(255,255,255,0.22)',
@@ -616,6 +658,16 @@ const styles = StyleSheet.create({
     color: '#A5F3FC',
     fontSize: 16,
     fontWeight: '600',
+    textAlign: 'center',
+  },
+  bottomSkipOnDark: {
+    alignSelf: 'center',
+    marginTop: 4,
+    paddingVertical: 8,
+  },
+  bottomSkipText: {
+    color: 'rgba(255,255,255,0.55)',
+    fontSize: 14,
     textAlign: 'center',
   },
   countdownOverlay: {

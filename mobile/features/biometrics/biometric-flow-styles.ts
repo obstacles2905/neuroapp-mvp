@@ -143,6 +143,8 @@ export function useBiometricFlowStyles() {
           padding: 14,
         },
         scroll: { paddingHorizontal: 20, paddingVertical: 8, paddingBottom: 44 },
+        ghost: { alignSelf: 'center', marginTop: 16, paddingVertical: 10 },
+        ghostText: { color: t.textSecondary, fontSize: 16, textAlign: 'center' },
         secondary: { alignSelf: 'flex-start', marginTop: 16, paddingVertical: 8 },
         secondaryText: { color: t.link, fontSize: 16, fontWeight: '600' },
         summaryBox: {

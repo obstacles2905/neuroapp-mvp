@@ -53,6 +53,7 @@ export type VoiceCaptureFlowProps = {
   enableRemoteSync?: boolean | undefined;
   onBack: () => void;
   onComplete: (session: VoiceMeasurementSession) => void;
+  onSkip?: (() => void) | undefined;
   screenTitle: string;
 };
 
@@ -86,6 +87,7 @@ export function VoiceCaptureFlow({
   enableRemoteSync = true,
   onBack,
   onComplete,
+  onSkip,
   screenTitle,
 }: VoiceCaptureFlowProps): JSX.Element {
   const t = useAppTheme();
@@ -376,6 +378,11 @@ export function VoiceCaptureFlow({
           ? ' На этом устройстве признаки извлекаются через openSMILE (eGeMAPS).'
           : ' На этой платформе пока используются упрощённые прокси по записи.'}
       </Text>
+      {onSkip != null && (phase === 'vowel_intro' || phase === 'phrase_intro') ? (
+        <Pressable style={bf.ghost} onPress={onSkip}>
+          <Text style={bf.ghostText}>Пропустить замер голоса</Text>
+        </Pressable>
+      ) : null}
     </ScrollView>
   );
 }

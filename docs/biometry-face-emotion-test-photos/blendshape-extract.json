@@ -1,0 +1,202 @@
+{
+  "neutral_positive.jpg": {
+    "phase": "baseline",
+    "focused": {
+      "mouthSmileLeft": 0.0002,
+      "mouthSmileRight": 0.0002,
+      "cheekSquintLeft": 0.0,
+      "cheekSquintRight": 0.0,
+      "browDownLeft": 0.0035,
+      "browDownRight": 0.0014,
+      "browInnerUp": 0.1127,
+      "eyeWideLeft": 0.0059,
+      "eyeWideRight": 0.0062,
+      "jawOpen": 0.0182,
+      "mouthPressLeft": 0.0212,
+      "mouthPressRight": 0.042,
+      "mouthPucker": 0.0247,
+      "mouthClose": 0.0148,
+      "noseSneerLeft": 0.0,
+      "noseSneerRight": 0.0,
+      "mouthFrownLeft": 0.0009,
+      "mouthFrownRight": 0.0009
+    },
+    "target_means": {
+      "smile": 0.0001,
+      "frown": 0.0392,
+      "surprise": 0.03575,
+      "anger_proxy": 0.0011166666666666666,
+      "tension": 0.02418,
+      "asym": 0.047700000000000006
+    }
+  },
+  "neutral_negative.jpg": {
+    "phase": "baseline",
+    "focused": {
+      "mouthSmileLeft": 0.9244,
+      "mouthSmileRight": 0.9348,
+      "cheekSquintLeft": 0.0,
+      "cheekSquintRight": 0.0,
+      "browDownLeft": 0.0081,
+      "browDownRight": 0.0014,
+      "browInnerUp": 0.0178,
+      "eyeWideLeft": 0.0259,
+      "eyeWideRight": 0.1566,
+      "jawOpen": 0.5366,
+      "mouthPressLeft": 0.0179,
+      "mouthPressRight": 0.0618,
+      "mouthPucker": 0.0038,
+      "mouthClose": 0.0028,
+      "noseSneerLeft": 0.0,
+      "noseSneerRight": 0.0,
+      "mouthFrownLeft": 0.0013,
+      "mouthFrownRight": 0.001
+    },
+    "target_means": {
+      "smile": 0.4648,
+      "frown": 0.009099999999999999,
+      "surprise": 0.18422499999999997,
+      "anger_proxy": 0.001966666666666667,
+      "tension": 0.12458,
+      "asym": 0.03919999999999999
+    }
+  },
+  "smile_positive.jpg": {
+    "phase": "guided_smile",
+    "focused": {
+      "mouthSmileLeft": 0.5675,
+      "mouthSmileRight": 0.6672,
+      "cheekSquintLeft": 0.0,
+      "cheekSquintRight": 0.0,
+      "browDownLeft": 0.006,
+      "browDownRight": 0.0041,
+      "noseSneerLeft": 0.0,
+      "noseSneerRight": 0.0,
+      "mouthFrownLeft": 0.0001,
+      "mouthFrownRight": 0.0001,
+      "jawOpen": 0.0037
+    },
+    "target_means": {
+      "smile": 0.30867500000000003,
+      "frown": 0.024499999999999997,
+      "surprise": 0.019975,
+      "anger_proxy": 0.0017166666666666667,
+      "tension": 0.02858,
+      "asym": 0.034480000000000004
+    }
+  },
+  "smile_negative.jpg": {
+    "phase": "guided_smile",
+    "focused": {
+      "mouthSmileLeft": 0.0438,
+      "mouthSmileRight": 0.069,
+      "cheekSquintLeft": 0.0,
+      "cheekSquintRight": 0.0,
+      "browDownLeft": 0.2234,
+      "browDownRight": 0.1967,
+      "noseSneerLeft": 0.0,
+      "noseSneerRight": 0.0,
+      "mouthFrownLeft": 0.0003,
+      "mouthFrownRight": 0.0003,
+      "jawOpen": 0.0009
+    },
+    "target_means": {
+      "smile": 0.028200000000000003,
+      "frown": 0.14006666666666667,
+      "surprise": 0.03407500000000001,
+      "anger_proxy": 0.07011666666666667,
+      "tension": 0.02948,
+      "asym": 0.020619999999999993
+    }
+  },
+  "grumpy_positive.jpg": {
+    "phase": "guided_frown",
+    "focused": {
+      "browDownLeft": 0.1523,
+      "browDownRight": 0.143,
+      "browInnerUp": 0.001,
+      "mouthSmileLeft": 0.0002,
+      "mouthSmileRight": 0.0001,
+      "noseSneerLeft": 0.0,
+      "noseSneerRight": 0.0,
+      "mouthFrownLeft": 0.0012,
+      "mouthFrownRight": 0.0012
+    },
+    "target_means": {
+      "smile": 7.500000000000001e-05,
+      "frown": 0.09876666666666667,
+      "surprise": 0.011725,
+      "anger_proxy": 0.04961666666666666,
+      "tension": 0.028599999999999997,
+      "asym": 0.02704
+    }
+  },
+  "grumpy_negative.jpg": {
+    "phase": "guided_frown",
+    "focused": {
+      "browDownLeft": 0.0037,
+      "browDownRight": 0.003,
+      "browInnerUp": 0.0713,
+      "mouthSmileLeft": 0.0802,
+      "mouthSmileRight": 0.108,
+      "noseSneerLeft": 0.0,
+      "noseSneerRight": 0.0,
+      "mouthFrownLeft": 0.0001,
+      "mouthFrownRight": 0.0001
+    },
+    "target_means": {
+      "smile": 0.047049999999999995,
+      "frown": 0.026,
+      "surprise": 0.023825,
+      "anger_proxy": 0.0011500000000000002,
+      "tension": 0.09702,
+      "asym": 0.027239999999999997
+    }
+  },
+  "surprised_positive.jpg": {
+    "phase": "guided_surprise",
+    "focused": {
+      "browInnerUp": 0.1656,
+      "eyeWideLeft": 0.1626,
+      "eyeWideRight": 0.2786,
+      "jawOpen": 0.3924,
+      "browDownLeft": 0.0033,
+      "browDownRight": 0.0022,
+      "mouthSmileLeft": 0.0002,
+      "mouthSmileRight": 0.0002,
+      "noseSneerLeft": 0.0,
+      "noseSneerRight": 0.0
+    },
+    "target_means": {
+      "smile": 0.0001,
+      "frown": 0.05703333333333333,
+      "surprise": 0.24980000000000002,
+      "anger_proxy": 0.0009166666666666666,
+      "tension": 0.11978,
+      "asym": 0.0083
+    }
+  },
+  "surprised_negative.jpg": {
+    "phase": "guided_surprise",
+    "focused": {
+      "browInnerUp": 0.0002,
+      "eyeWideLeft": 0.048,
+      "eyeWideRight": 0.0843,
+      "jawOpen": 0.2899,
+      "browDownLeft": 0.2359,
+      "browDownRight": 0.1765,
+      "mouthSmileLeft": 0.2123,
+      "mouthSmileRight": 0.237,
+      "noseSneerLeft": 0.0,
+      "noseSneerRight": 0.0
+    },
+    "target_means": {
+      "smile": 0.112325,
+      "frown": 0.1375333333333333,
+      "surprise": 0.1056,
+      "anger_proxy": 0.07881666666666666,
+      "tension": 0.06472,
+      "asym": 0.0387
+    }
+  }
+}
